@@ -13,8 +13,9 @@
  */
 
 return [
-    '' => [
-        //support\middleware\AuthCheckTest::class,
-        //support\middleware\AccessControlTest::class,
-    ]
+	'' => [
+		//support\middleware\AuthCheckTest::class,
+		//support\middleware\AccessControlTest::class,
+		app\middleware\AuthCheck::class,
+	]
 ];
