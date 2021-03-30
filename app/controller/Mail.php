@@ -25,7 +25,7 @@ class Mail
 		$isHtml = strip_tags($email) != $email;
 		if (!is_array($who))
 			$who = [$who];
-		$mailer = new PHPMailer();
+		$mailer = new PHPMailer(true);
 		$mailer->CharSet = 'utf-8';
 		$mailer->isSMTP();
 		$mailer->Port = 25;
@@ -35,17 +35,21 @@ class Mail
 		$mailer->Password = SMTP_PASS;
 		$mailer->Subject = $subject;
 		$mailer->isHTML($isHtml);
-		$mailer->setFrom($from, $fromName);
-		$mailer->addReplyTo($from, $fromName);
-		foreach ($who as $to)
-			$mailer->addAddress($to);
-		$mailer->Body = $email;
-		$mailer->preSend();
-		if ($sent == false) {		
-			if (!$mailer->send()) {                                                 
-				error_log('Mailer Error: '.$mailer->ErrorInfo);
-				return false;
+		try {
+			$mailer->setFrom($from, $fromName);
+			$mailer->addReplyTo($from, $fromName);
+			foreach ($who as $to)
+				$mailer->addAddress($to);
+			$mailer->Body = $email;
+			$mailer->preSend();
+			if ($sent == false) {		
+				if (!$mailer->send()) {                                                 
+					error_log('Mailer Error: '.$mailer->ErrorInfo);
+					return false;
+				}
 			}
+		} catch (PHPMailer\PHPMailer\Exception $e) {
+			return json(['status' => 'error', 'text' => $mailer->ErrorInfo]);
 		}
 		
 	}
