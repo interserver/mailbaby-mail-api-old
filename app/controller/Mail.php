@@ -33,12 +33,21 @@ class Mail
 			->get();
 		if (is_null($order))
 			return response('The mail order with the specified ID was not found or not active.', 404);
+		$password = Db::table('history_log')
+			->where('history_type', 'password')
+			->where('history_section', 'mail')
+			->where('history_new_value', $id)
+			->where('mail_status', 'active')
+			->orderBy('history_timestamp', 'desc')
+			->first('history_old_value');
+			
 		$sent = false;
 		$from = $request->post('from');
 		$fromName = $request->post('fromName', '');
 		$email = $request->post('email');
 		$subject = $request->post('subject');
 		$isHtml = strip_tags($email) != $email;
+		$who = $request->post('who');
 		if (!is_array($who))
 			$who = [$who];
 		$mailer = new PHPMailer(true);
@@ -48,7 +57,7 @@ class Mail
 		$mailer->Host = SMTP_HOST;
 		$mailer->SMTPAuth = true;
 		$mailer->Username = $order->mail_username;
-		$mailer->Password = SMTP_PASS;
+		$mailer->Password = $password;
 		$mailer->Subject = $subject;
 		$mailer->isHTML($isHtml);
 		try {
@@ -58,12 +67,10 @@ class Mail
 				$mailer->addAddress($to);
 			$mailer->Body = $email;
 			$mailer->preSend();
-			if ($sent == false) {		
-				if (!$mailer->send()) {                                                 
-					error_log('Mailer Error: '.$mailer->ErrorInfo);
-					return false;
-				}
+			if (!$mailer->send()) {                                                 
+				return json(['status' => 'error', 'text' => $mailer->ErrorInfo]);
 			}
+			return json(['status' =>'ok', 'text' => 'ok']);
 		} catch (PHPMailer\PHPMailer\Exception $e) {
 			return json(['status' => 'error', 'text' => $mailer->ErrorInfo]);
 		}
