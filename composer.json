@@ -1,51 +1,51 @@
 {
-  "name": "workerman/webman",
+  "name": "interserver/mailbaby-mail-api",
   "type": "project",
   "keywords": [
-    "high performance",
-    "http service"
+	"high performance",
+	"http service"
   ],
-  "homepage": "http://www.workerman.net",
+  "homepage": "http://mail.baby",
   "license": "MIT",
-  "description": "High performance HTTP Service Framework.",
+  "description": "API service for accessing the Mail.Baby services.",
   "authors": [
-    {
-      "name": "walkor",
-      "email": "walkor@workerman.net",
-      "homepage": "http://www.workerman.net",
-      "role": "Developer"
-    }
+	{
+	  "name": "Joe Huss",
+	  "email": "detain@interserver.net",
+	  "homepage": "https://www.interserver.net",
+	  "role": "Developer"
+	}
   ],
   "support": {
-    "email": "walkor@workerman.net",
-    "issues": "https://github.com/walkor/webman/issues",
-    "forum": "http://wenda.workerman.net/",
-    "wiki": "http://workerman.net/doc/webman",
-    "source": "https://github.com/walkor/webman"
+	"email": "detain@interserver.net",
+	"issues": "https://github.com/walkor/webman/issues",
+	"forum": "http://wenda.workerman.net/",
+	"wiki": "http://workerman.net/doc/webman",
+	"source": "https://github.com/interserver/mailbaby-mail-api"
   },
   "require": {
-    "php": ">=7.2",
-    "workerman/webman-framework": "^1.0",
-    "monolog/monolog": "^2.0",
-    "vlucas/phpdotenv": "^5.1.0",
-    "illuminate/database": "^8.0",
-    "respect/validation": "^2.2",
-    "phpmailer/phpmailer": "^6.3"
+	"php": ">=7.2",
+	"workerman/webman-framework": "^1.0",
+	"monolog/monolog": "^2.0",
+	"vlucas/phpdotenv": "^5.1.0",
+	"illuminate/database": "^8.0",
+	"respect/validation": "^2.2",
+	"phpmailer/phpmailer": "^6.3"
   },
   "suggest": {
-    "ext-event": "For better performance. "
+	"ext-event": "For better performance. "
   },
   "autoload": {
-    "psr-4": {
-      "app\\": "app/"
-    },
-    "files": [
-      "./support/helpers.php"
-    ]
+	"psr-4": {
+	  "app\\": "app/"
+	},
+	"files": [
+	  "./support/helpers.php"
+	]
   },
   "scripts": {
-    "post-autoload-dump": [
-      "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
-    ]
+	"post-autoload-dump": [
+	  "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+	]
   }
 }
