@@ -2,17 +2,61 @@
 namespace app\controller;
 
 use support\Request;
+use support\Db;
+use support\bootstrap\Log;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
 
 class Mail
 {
 	public function index(Request $request)
 	{
+		$accountInfo = $GLOBALS['accountInfo'];
+		$orders = Db::table('mail')
+			->where('mail_custid', $accountInfo->account_id)
+			->get();
 		return response('hello');
+	}
+	
+	public function send(Request $request, $id) {
+		$sent = false;
+		$from = 'noreply@interserver.net';
+		$fromName = 'My.InterServer';
+		$isHtml = strip_tags($email) != $email;
+		if (!is_array($who))
+			$who = [$who];
+		$mailer = new PHPMailer();
+		$mailer->CharSet = 'utf-8';
+		$mailer->isSMTP();
+		$mailer->Port = 25;
+		$mailer->Host = SMTP_HOST;
+		$mailer->SMTPAuth = true;
+		$mailer->Username = SMTP_USER;
+		$mailer->Password = SMTP_PASS;
+		$mailer->Subject = $subject;
+		$mailer->isHTML($isHtml);
+		$mailer->setFrom($from, $fromName);
+		$mailer->addReplyTo($from, $fromName);
+		foreach ($who as $to)
+			$mailer->addAddress($to);
+		$mailer->Body = $email;
+		$mailer->preSend();
+		if ($sent == false) {		
+			if (!$mailer->send()) {                                                 
+				error_log('Mailer Error: '.$mailer->ErrorInfo);
+				return false;
+			}
+		}
+		
+	}
+
+	public function log(Request $request, $id) {
+		
 	}
 
 	public function view(Request $request)
 	{
-		return view('index/view', ['name' => 'webman');
+		return view('index/view', ['name' => 'webman']);
 	}
 
 	public function json(Request $request)

@@ -14,13 +14,8 @@
 
 use Webman\Route;
 
-
-Route::any('/test', function ($request) {
-	return response('test');
-});
-
 Route::get('/ping', function($request) {
 	return response('Server is up and running', 200);	
 });
-
-Route::any('/route-test', 'app\controller\Index@index');
+Route::get('/mail/{id:\d+}/send', [app\controller\Mail::class, 'send']);
+Route::get('/mail/{id:\d+}/log', [app\controller\Mail::class, 'log']);
