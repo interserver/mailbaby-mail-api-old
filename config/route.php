@@ -16,7 +16,11 @@ use Webman\Route;
 
 
 Route::any('/test', function ($request) {
-    return response('test');
+	return response('test');
+});
+
+Route::get('/ping', function($request) {
+	return response('Server is up and running', 200);	
 });
 
 Route::any('/route-test', 'app\controller\Index@index');
