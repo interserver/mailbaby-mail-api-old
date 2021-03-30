@@ -78,6 +78,14 @@ class Mail
 	}
 
 	public function log(Request $request, $id) {
+		$accountInfo = $GLOBALS['accountInfo'];
+		$order = Db::table('mail')
+			->where('mail_custid', $accountInfo->account_id)
+			->where('mail_id', $id)
+			->where('mail_status', 'active')
+			->get();
+		if (is_null($order))
+			return response('The mail order with the specified ID was not found or not active.', 404);
 		
 	}
 
