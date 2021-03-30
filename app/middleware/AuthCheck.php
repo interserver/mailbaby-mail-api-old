@@ -5,7 +5,7 @@ use Webman\MiddlewareInterface;
 use Webman\Http\Response;
 use Webman\Http\Request;
 use support\Db;
-use support\bootstrap\Log;
+//use support\bootstrap\Log;
 
 class AuthCheck implements MiddlewareInterface
 {

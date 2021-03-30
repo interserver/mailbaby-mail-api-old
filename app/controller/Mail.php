@@ -6,6 +6,7 @@ use support\Db;
 use support\bootstrap\Log;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
+use Respect\Validation\Validator as v;
 
 class Mail
 {
@@ -26,6 +27,8 @@ class Mail
 	
 	public function send(Request $request, $id) {
 		$accountInfo = $GLOBALS['accountInfo'];
+		if (!v::intVal()->validate($id))
+			return response('The specified ID was invalid.', 400);
 		$order = Db::table('mail')
 			->where('mail_custid', $accountInfo->account_id)
 			->where('mail_id', $id)
