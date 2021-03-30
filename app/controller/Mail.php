@@ -2,18 +2,17 @@
 namespace app\controller;
 
 use support\Request;
-use support\Db;
 
 class Mail
 {
 	public function index(Request $request)
 	{
-		return response('hello webman');
+		return response('hello');
 	}
 
 	public function view(Request $request)
 	{
-		return view('index/view', ['name' => 'webman']);
+		return view('index/view', ['name' => 'webman');
 	}
 
 	public function json(Request $request)
