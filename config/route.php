@@ -17,5 +17,11 @@ use Webman\Route;
 Route::get('/ping', function($request) {
 	return response('Server is up and running', 200);	
 });
-Route::get('/mail/{id:\d+}/send', [app\controller\Mail::class, 'send']);
-Route::get('/mail/{id:\d+}/log', [app\controller\Mail::class, 'log']);
+Route::group('/mail', function() {
+	Route::get('', [app\controller\Mail::class, 'index']);
+	Route::get('/{id:\d+}/send', [app\controller\Mail::class, 'send']);
+	Route::get('/{id:\d+}/log', [app\controller\Mail::class, 'log']);
+	
+})->middleware([
+	app\middleware\AuthCheck::class
+]);

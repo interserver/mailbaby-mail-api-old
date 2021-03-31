@@ -1,16 +1,11 @@
 openapi: 3.0.0
 servers:
+  - description: Temporary API Endpoint
+    url: 'http://mynew.interserver.net:8787/'
+  - description: Live API Endpoint
+    url: 'https://api.interserver.net/'
   - description: SwaggerHub API Auto Mocking
     url: 'https://virtserver.swaggerhub.com/InterServer/MailBaby/1.0.0'
-  - description: Live API Endpoint
-    url: 'https://{environment}.interserver.net/v1'
-    variables:
-      environment:
-        default: api
-        enum:
-          - api
-          - api.dev
-          - api.staging
 info:
   description: This is an API for accesssing the mail services.
   version: 1.0.0
@@ -27,6 +22,7 @@ paths:
   /ping:
     get:
       summary: Checks if the server is running
+      operationId: pingServer
       security: []
       responses:
         '200':
@@ -37,6 +33,7 @@ paths:
   /mail:
     get:
       summary: displays a list of mail service orders
+      operationId: getMailOrders
       responses:
         '200':
           description: OK
@@ -55,7 +52,9 @@ paths:
       parameters: []
   /mail/order:
     get:
-      summary: validatess order details before placing na order
+      summary: validatess order details before placing an order
+      operationId: validateMailOrder
+      deprecated: true
       responses:
         '200':
           description: list of mail orders
@@ -64,6 +63,8 @@ paths:
       parameters: []
     post:
       summary: places a mail order
+      operationId: placeMailOrder
+      deprecated: true
       responses:
         '200':
           description: list of mail orders
@@ -74,7 +75,6 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
       parameters: []
-      operationId: addInventory
       description: Adds an item to the system
       requestBody:
         content:
@@ -105,6 +105,7 @@ paths:
   /mail/{id}/send:
     get:
       summary: Sends an Email
+      operationId: sendMailById
       description: Sends An email through one of your mail orders.
       parameters:
         - name: id
@@ -146,7 +147,8 @@ paths:
   /mail/{id}/log:
     get:
       summary: displays the mail log
-      operationId: searchInventory
+      deprecated: true
+      operationId: viewMailLogById
       description: |
         By passing in the appropriate options, you can search for
         available inventory in the system
