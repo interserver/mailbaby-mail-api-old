@@ -17,11 +17,36 @@ class Mail
 			->where('mail_custid', $accountInfo->account_id)
 			->get();
 		$return = [];
-		foreach ($orders as $order)
-			$return[] = [
+		foreach ($orders as $order) {
+			$row = [
 				'id' => $order->mail_id,
 				'status' => $order->mail_status,
+				'username' => $order->mail_username,				
 			];
+			if ($order->mail_comment != '')
+				$row['comment'] = $order->mail_comment;
+			$return[] = $row;
+		}
+		return json($return);
+	}
+	
+	public function view(Request $request, $id)
+	{
+		$accountInfo = $request->accountInfo;
+		if (!v::intVal()->validate($id))
+			return response('The specified ID was invalid.', 400);
+		$order = Db::table('mail')
+			->where('mail_custid', $accountInfo->account_id)
+			->where('mail_id', $id)
+			->first();
+		$return = [
+			'id' => $order->mail_id,
+			'status' => $order->mail_status,
+			'username' => $order->mail_username,
+			'password' => $this->getMailPassword($request, $id),
+		];
+		if ($order->mail_comment != '')
+			$row['comment'] = $order->mail_comment;
 		return json($return);
 	}
 	
@@ -33,17 +58,9 @@ class Mail
 			->where('mail_custid', $accountInfo->account_id)
 			->where('mail_id', $id)
 			->where('mail_status', 'active')
-			->get();
+			->first();
 		if (is_null($order))
 			return response('The mail order with the specified ID was not found or not active.', 404);
-		$password = Db::table('history_log')
-			->where('history_type', 'password')
-			->where('history_section', 'mail')
-			->where('history_new_value', $id)
-			->where('mail_status', 'active')
-			->orderBy('history_timestamp', 'desc')
-			->first('history_old_value');
-			
 		$sent = false;
 		$from = $request->post('from');
 		$fromName = $request->post('fromName', '');
@@ -57,10 +74,10 @@ class Mail
 		$mailer->CharSet = 'utf-8';
 		$mailer->isSMTP();
 		$mailer->Port = 25;
-		$mailer->Host = SMTP_HOST;
+		$mailer->Host = 'relay.mailbaby.net';
 		$mailer->SMTPAuth = true;
 		$mailer->Username = $order->mail_username;
-		$mailer->Password = $password;
+		$mailer->Password = $this->getMailPassword($request, $id);
 		$mailer->Subject = $subject;
 		$mailer->isHTML($isHtml);
 		try {
@@ -92,7 +109,7 @@ class Mail
 		
 	}
 
-	public function view(Request $request)
+	public function viewtest(Request $request)
 	{
 		return view('index/view', ['name' => 'webman']);
 	}
@@ -110,5 +127,23 @@ class Mail
 			return json(['code' => 0, 'msg' => 'upload success']);
 		}
 		return json(['code' => 1, 'msg' => 'file not found']);
+	}
+	
+	/**
+	* returns the current password for a mail account
+	* 
+	* @param Request $request
+	* @param int $id
+	* @return null|string the current password or null on no matching password
+	*/
+	private function getMailPassword(Request $request, $id) {
+		$password = Db::table('history_log')
+			->where('history_type', 'password')
+			->where('history_section', 'mail')
+			->where('history_creator', $request->accountInfo->account_id)
+			->where('history_new_value', $id)
+			->orderBy('history_timestamp', 'desc')
+			->first('history_old_value');
+		return $password;
 	}
 }  

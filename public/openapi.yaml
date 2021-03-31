@@ -47,6 +47,12 @@ paths:
             text/plain:
               schema:
                 type: string
+          links:
+            getMailByIdLink:
+              operationId: getMailById
+              parameters:
+                id: '$response.body#/0/id'
+              description: The `id` value returned in the response can be used as the `id` parameter in `GET /mail/{id}`.
         '401':
           $ref: '#/components/responses/Unauthorized'
       parameters: []
@@ -189,7 +195,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/MailOrder'
+                  $ref: '#/components/schemas/MailLog'
         '400':
           description: bad input parameter
 components:
@@ -242,12 +248,19 @@ components:
         status:
           type: string
           example: active
-        fullTime:
-          type: boolean
-          example: John Doe
+        username:
+          type: string
+          example: mb1234
+        password:
+          type: string
+          example: guest123
+        comment:
+          type: string
+          example: main mail account
       required:
         - id
-        - name
+        - status
+        - username
     MailLog:
       type: object
       properties:

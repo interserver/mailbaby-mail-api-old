@@ -19,6 +19,7 @@ Route::get('/ping', function($request) {
 });
 Route::group('/mail', function() {
 	Route::get('', [app\controller\Mail::class, 'index']);
+	Route::get('/{id:\d+}', [app\controller\Mail::class, 'view']);
 	Route::get('/{id:\d+}/send', [app\controller\Mail::class, 'send']);
 	Route::get('/{id:\d+}/log', [app\controller\Mail::class, 'log']);
 	
