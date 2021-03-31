@@ -12,7 +12,7 @@ class Mail
 {
 	public function index(Request $request)
 	{
-		$accountInfo = $GLOBALS['accountInfo'];
+		$accountInfo = $request->accountInfo;
 		$orders = Db::table('mail')
 			->where('mail_custid', $accountInfo->account_id)
 			->get();
@@ -26,7 +26,7 @@ class Mail
 	}
 	
 	public function send(Request $request, $id) {
-		$accountInfo = $GLOBALS['accountInfo'];
+		$accountInfo = $request->accountInfo;
 		if (!v::intVal()->validate($id))
 			return response('The specified ID was invalid.', 400);
 		$order = Db::table('mail')
@@ -81,7 +81,7 @@ class Mail
 	}
 
 	public function log(Request $request, $id) {
-		$accountInfo = $GLOBALS['accountInfo'];
+		$accountInfo = $request->accountInfo;
 		$order = Db::table('mail')
 			->where('mail_custid', $accountInfo->account_id)
 			->where('mail_id', $id)

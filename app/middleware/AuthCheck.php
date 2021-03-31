@@ -31,7 +31,7 @@ class AuthCheck implements MiddlewareInterface
 				->first();
 		if (is_null($accountInfo))
 			return response('API key is missing or invalid', 401);
-		$GLOBALS['accountInfo'] = $accountInfo;			
+		$request->accountInfo = $accountInfo;			
 		//Log::info('auth check response:'.var_export($accountInfo,true));
 		return $next($request);
 	}
