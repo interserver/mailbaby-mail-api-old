@@ -1,0 +1,311 @@
+openapi: 3.0.0
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: 'https://virtserver.swaggerhub.com/InterServer/MailBaby/1.0.0'
+  - description: Live API Endpoint
+    url: 'https://{environment}.interserver.net/v1'
+    variables:
+      environment:
+        default: api
+        enum:
+          - api
+          - api.dev
+          - api.staging
+info:
+  description: This is an API for accesssing the mail services.
+  version: 1.0.0
+  title: Mail Baby API
+  contact:
+    email: detain@interserver.net
+    url: 'https://www.interserver.net/contact-information.html'
+    name: Joe Huss
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+  termsOfService: 'https://www.interserver.net/terms-of-service.html'
+paths:
+  /ping:
+    get:
+      summary: Checks if the server is running
+      security: []
+      responses:
+        '200':
+          description: Server is up and running
+        default:
+          description: Something is wrong
+      parameters: []
+  /mail:
+    get:
+      summary: displays a list of mail service orders
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailOrders'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/MailOrders'
+            text/plain:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters: []
+  /mail/order:
+    get:
+      summary: validatess order details before placing na order
+      responses:
+        '200':
+          description: list of mail orders
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters: []
+    post:
+      summary: places a mail order
+      responses:
+        '200':
+          description: list of mail orders
+        '400':
+          description: 'invalid input, object invalid'
+        '409':
+          description: an existing item already exists
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters: []
+      operationId: addInventory
+      description: Adds an item to the system
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MailOrder'
+        description: Inventory item to add
+  /mail/{id}:
+    get:
+      summary: Gets mail order information by id
+      description: returns information about a mail order in the system with the given id.
+      operationId: getMailById
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailOrder'      
+  /mail/{id}/send:
+    get:
+      summary: Sends an Email
+      description: Sends An email through one of your mail orders.
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: subject
+          schema:
+            type: string
+        - in: query
+          name: body
+          schema:
+            type: string
+        - in: query
+          name: to
+          schema:
+            type: string
+        - in: query
+          name: from
+          schema:
+            type: string
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+        '400':
+          description: bad input parameter
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'                
+  /mail/{id}/log:
+    get:
+      summary: displays the mail log
+      operationId: searchInventory
+      description: |
+        By passing in the appropriate options, you can search for
+        available inventory in the system
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: searchString
+          description: pass an optional search string for looking up inventory
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: skip
+          description: number of records to skip for pagination
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 50
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MailOrder'
+        '400':
+          description: bad input parameter
+components:
+  # Security scheme definitions (see Authentication)
+  securitySchemes:
+    apiLoginAuth:
+      type: apiKey
+      in: header
+      name: X-API-LOGIN
+    apiPasswordAuth:
+      type: apiKey
+      in: header
+      name: X-API-PASS
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+  # Reusable schemas (data models)
+  schemas:
+    # Schema for error response body
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message  
+    GenericResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        status_text:
+          type: string
+          example: The command completed successfully.
+    MailOrders:
+      type: array
+      items:
+        $ref: '#/components/schemas/MailOrder'
+    MailOrder:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1234
+        status:
+          type: string
+          example: active
+        fullTime:
+          type: boolean
+          example: John Doe
+      required:
+        - id
+        - name
+    MailLog:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+      description: Mail Order Details
+  # Reusable request bodies
+  requestBodies: {}
+  # Reusable responses, such as 401 Unauthorized or 400 Bad Request
+  responses:
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'  
+  # Reusable response headers
+  headers: {}
+  # Reusable examples
+  examples: {}
+  # Reusable links
+  links: {}
+  # Reusable callbacks
+  callbacks: {}
+  # Reusable path, query, header and cookie parameters
+  parameters:
+    offsetParam:      # Can be referenced via '#/components/parameters/offsetParam'
+      name: offset
+      in: query
+      description: Number of items to skip before returning the results.
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+    limitParam:       # Can be referenced as '#/components/parameters/limitParam'
+      name: limit
+      in: query
+      description: Maximum number of items to return.
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 100
+        default: 20  
+security:
+  - apiLoginAuth: []
+    apiPasswordAuth: []
+  - apiLoginAuth: []
+    apiKeyAuth: []
+externalDocs:
+  description: |
+    https://www.interserver.net/blog/
+  url: 'https://interserver.net/tips/'
