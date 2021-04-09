@@ -8,5 +8,7 @@ foreach ($matches[1] as $idx => $cat) {
 }
 foreach ($cats['client'] as $idx => $lang) {
 	echo "[$idx] Language: $lang\n";
-	passthrough('npx @openapitools/openapi-generator-cli generate -i public/openapi.yaml -g '.$lang.' -o samples/'.$lang.'/');
+	mkdir('samples/'.$lang, true);
+	passthru('npx @openapitools/openapi-generator-cli generate -i public/openapi.yaml -g '.$lang.' -o samples/'.$lang.'/');
 }
+unlink('openapitools.json');
