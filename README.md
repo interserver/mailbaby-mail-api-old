@@ -6,6 +6,12 @@ API service for accessing the Mail.Baby services.
 
 This is built on top of Webman, a high performance HTTP Service Framework for PHP based on [Workerman](https://github.com/walkor/workerman).
 
+## TODO
+
+* Customize 404 Page
+* Testing
+* Additional error checking and handling   
+
 ## URLs of interest in this project
 
 * https://mystage.interserver.net/api.php
