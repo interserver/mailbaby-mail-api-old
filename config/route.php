@@ -18,10 +18,10 @@ Route::get('/ping', function($request) {
 	return response('Server is up and running', 200);	
 });
 Route::group('/mail', function() {
-	Route::get('', [app\controller\Mail::class, 'index']);
-	Route::get('/{id:\d+}', [app\controller\Mail::class, 'view']);
-	Route::post('/{id:\d+}/send', [app\controller\Mail::class, 'send']);
-	Route::post('/{id:\d+}/log', [app\controller\Mail::class, 'log']);
+	Route::get('', 'app\controller\Mail@index');
+	Route::get('/{id:\d+}', 'app\controller\Mail@view');
+	Route::post('/{id:\d+}/send', 'app\controller\Mail@send');
+	Route::post('/{id:\d+}/log', 'app\controller\Mail@log');
 	
 })->middleware([
 	app\middleware\AuthCheck::class
