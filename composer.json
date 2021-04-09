@@ -47,5 +47,8 @@
 	"post-autoload-dump": [
 	  "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
 	]
+  },
+  "require-dev": {
+    "league/openapi-psr7-validator": "^0.15.2"
   }
 }

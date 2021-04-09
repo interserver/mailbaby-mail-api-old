@@ -64,20 +64,22 @@ class Mail
 		$sent = false;
 		$from = $request->post('from');
 		$fromName = $request->post('fromName', '');
-		$email = $request->post('email');
+		$email = $request->post('body');
 		$subject = $request->post('subject');
 		$isHtml = strip_tags($email) != $email;
-		$who = $request->post('who');
+		$who = $request->post('to');
 		if (!is_array($who))
 			$who = [$who];
+		$username = (string)$order->mail_username;
+		$password = (string)$this->getMailPassword($request, $id);
 		$mailer = new PHPMailer(true);
 		$mailer->CharSet = 'utf-8';
 		$mailer->isSMTP();
 		$mailer->Port = 25;
 		$mailer->Host = 'relay.mailbaby.net';
 		$mailer->SMTPAuth = true;
-		$mailer->Username = $order->mail_username;
-		$mailer->Password = $this->getMailPassword($request, $id);
+		$mailer->Username = $username;
+		$mailer->Password = $password;
 		$mailer->Subject = $subject;
 		$mailer->isHTML($isHtml);
 		try {
@@ -144,6 +146,6 @@ class Mail
 			->where('history_new_value', $id)
 			->orderBy('history_timestamp', 'desc')
 			->first('history_old_value');
-		return $password;
+		return $password->history_old_value;
 	}
 }  

@@ -20,8 +20,8 @@ Route::get('/ping', function($request) {
 Route::group('/mail', function() {
 	Route::get('', [app\controller\Mail::class, 'index']);
 	Route::get('/{id:\d+}', [app\controller\Mail::class, 'view']);
-	Route::get('/{id:\d+}/send', [app\controller\Mail::class, 'send']);
-	Route::get('/{id:\d+}/log', [app\controller\Mail::class, 'log']);
+	Route::post('/{id:\d+}/send', [app\controller\Mail::class, 'send']);
+	Route::post('/{id:\d+}/log', [app\controller\Mail::class, 'log']);
 	
 })->middleware([
 	app\middleware\AuthCheck::class
