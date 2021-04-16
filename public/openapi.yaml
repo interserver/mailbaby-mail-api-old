@@ -139,7 +139,17 @@ paths:
           schema:
             type: string
         - in: query
+          name: toName
+          required: false
+          schema:
+            type: string
+        - in: query
           name: from
+          schema:
+            type: string
+        - in: query
+          name: fromName
+          required: false
           schema:
             type: string
       responses:
@@ -154,7 +164,48 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
-          $ref: '#/components/responses/NotFound'                
+          $ref: '#/components/responses/NotFound'
+  /mail/{id}/advsend:
+    post:
+      summary: Sends an Email with Advanced Options
+      operationId: sendAdvMailById
+      description: Sends An email through one of your mail orders allowing additional options such as file attachments, cc, bcc, etc.
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMail'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/SendMail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SendMailForm'
+          text/plain:
+            schema:
+              type: string  
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+        '400':
+          description: bad input parameter
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /mail/{id}/log:
     get:
       summary: displays the mail log
@@ -272,6 +323,94 @@ components:
           type: integer
           format: int64
       description: Mail Order Details
+    MailContact:
+      type: object
+      description: An Email Contact
+      properties:
+        email:
+          type: string
+          example: johndoe@company.com
+          description: The email address
+        name:
+          type: string
+          example: John Doe
+          description: Optional contact name
+      required:
+        - email
+    MailAttachment:
+      type: object
+      description: A File attachment for an email
+      properties:
+        filename:
+          type: string
+          example: company_logo.png
+          description: Optional filename to specify for the attachment.
+        data:
+          type: string
+          format: binary
+          description: Contents of the attached file
+      required:
+        - data
+    SendMail:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: The ID of the Mail order within our system to use as the Mail Account.
+        from:
+          description: The contact whom is sending the email.
+          $ref: '#/components/schemas/MailContact'          
+        to:
+          type: array
+          description: The Contact whom is the primary recipient of this email.
+          items:
+            $ref: '#/components/schemas/MailContact'
+        subject:
+          type: string
+          description: The subject or title of the email
+          example: Your Package has been Delivered!
+        body:
+          type: string
+          description: The main email contents.
+          example: >
+            The package you ordered on 2021-01-23 has been delivered.
+            If the package is broken into many pieces, please blaim
+            someone else.
+        replyto:
+          type: array
+          description: Optional list of Contacts that specify where replies to the email should be sent instead of the _from_ address.
+          items:
+            $ref: '#/components/schemas/MailContact'
+        cc:
+          type: array
+          description: Optional list of Contacts that should receive copies of the email.  They are listed on the email and anyone getting the email can see this full list of Contacts who received the email as well.
+          items:
+            $ref: '#/components/schemas/MailContact'
+        bcc:
+          type: array
+          description: Optional list of Contacts that should receive copies of the email.  They are hidden on the email and anyone gettitng the email would not see the other people getting the email in this list.
+          items:
+            $ref: '#/components/schemas/MailContact'
+        attachments:
+          type: array
+          description: Optional file attachments to include in the email
+          items:
+            $ref: '#/components/schemas/MailAttachment'
+      description: Details for an Email
+      required:
+        - id
+        - from
+        - to
+        - subject
+        - body
+    SendMailForm:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+      description: Details for an Email
   # Reusable request bodies
   requestBodies: {}
   # Reusable responses, such as 401 Unauthorized or 400 Bad Request
