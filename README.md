@@ -2,6 +2,12 @@
 
 API service for accessing the Mail.Baby services.
 
+# API Sample Clients
+
+Sample clients for the API are available in many languages
+
+* https://github.com/interserver/mailbaby-api-samples
+
 # Development
 
 This is built on top of Webman, a high performance HTTP Service Framework for PHP based on [Workerman](https://github.com/walkor/workerman).
