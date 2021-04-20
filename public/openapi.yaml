@@ -1,41 +1,51 @@
 openapi: 3.0.0
-servers:
-  - description: Live API Endpoint
-    url: 'https://api.mailbaby.net/'
-  - description: Temporary API Endpoint
-    url: 'http://mynew.interserver.net:8787/'
-  - description: SwaggerHub API Auto Mocking
-    url: 'https://virtserver.swaggerhub.com/InterServer/MailBaby/1.0.0'
 info:
-  description: This is an API for accesssing the mail services.
-  version: 1.0.0
   title: Mail Baby API
+  description: This is an API for accesssing the mail services.
+  termsOfService: https://www.interserver.net/terms-of-service.html
   contact:
-    email: detain@interserver.net
-    url: 'https://www.interserver.net/contact-information.html'
     name: Joe Huss
+    url: https://www.interserver.net/contact-information.html
+    email: detain@interserver.net
   license:
     name: Apache 2.0
-    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
-  termsOfService: 'https://www.interserver.net/terms-of-service.html'
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+externalDocs:
+  description: |
+    https://www.interserver.net/blog/
+  url: https://interserver.net/tips/
+servers:
+- url: https://api.mailbaby.net/
+  description: Live API Endpoint
+- url: http://mynew.interserver.net:8787/
+  description: Temporary API Endpoint
+- url: https://virtserver.swaggerhub.com/InterServer/MailBaby/1.0.0
+  description: SwaggerHub API Auto Mocking
+security:
+- apiLoginAuth: []
+  apiPasswordAuth: []
+- apiLoginAuth: []
+  apiKeyAuth: []
 paths:
   /ping:
     get:
       summary: Checks if the server is running
       operationId: pingServer
-      security: []
+      parameters: []
       responses:
-        '200':
+        "200":
           description: Server is up and running
         default:
           description: Something is wrong
-      parameters: []
+      security: []
   /mail:
     get:
       summary: displays a list of mail service orders
       operationId: getMailOrders
+      parameters: []
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -51,135 +61,179 @@ paths:
             sendMailByIdLink:
               operationId: sendMailById
               parameters:
-                id: '$response.body#/0/id'
-              description: The `id` value returned in the response can be used as the `id` parameter in `GET /mail/{id}/send`.
+                id: $response.body#/0/id
+              description: "The `id` value returned in the response can be used as\
+                \ the `id` parameter in `GET /mail/{id}/send`."
             getMailByIdLink:
               operationId: getMailById
               parameters:
-                id: '$response.body#/0/id'
-              description: The `id` value returned in the response can be used as the `id` parameter in `GET /mail/{id}`.
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-      parameters: []
+                id: $response.body#/0/id
+              description: "The `id` value returned in the response can be used as\
+                \ the `id` parameter in `GET /mail/{id}`."
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /mail/order:
     get:
       summary: validatess order details before placing an order
       operationId: validateMailOrder
-      deprecated: true
-      responses:
-        '200':
-          description: list of mail orders
-        '401':
-          $ref: '#/components/responses/Unauthorized'
       parameters: []
+      responses:
+        "200":
+          description: list of mail orders
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      deprecated: true
     post:
       summary: places a mail order
-      operationId: placeMailOrder
-      deprecated: true
-      responses:
-        '200':
-          description: list of mail orders
-        '400':
-          description: 'invalid input, object invalid'
-        '409':
-          description: an existing item already exists
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-      parameters: []
       description: Adds an item to the system
+      operationId: placeMailOrder
+      parameters: []
       requestBody:
+        description: Inventory item to add
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/MailOrder'
-        description: Inventory item to add
+      responses:
+        "200":
+          description: list of mail orders
+        "400":
+          description: "invalid input, object invalid"
+        "409":
+          description: an existing item already exists
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      deprecated: true
   /mail/{id}:
     get:
       summary: Gets mail order information by id
-      description: returns information about a mail order in the system with the given id.
+      description: returns information about a mail order in the system with the given
+        id.
       operationId: getMailById
       parameters:
-        - name: id
-          in: path
-          description: User ID
-          required: true
-          schema:
-            type: integer
-            format: int64
+      - name: id
+        in: path
+        description: User ID
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
       responses:
-        '200':
+        "200":
           description: Successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MailOrder'      
+                $ref: '#/components/schemas/MailOrder'
   /mail/{id}/send:
     post:
       summary: Sends an Email
-      operationId: sendMailById
       description: Sends An email through one of your mail orders.
+      operationId: sendMailById
       parameters:
-        - name: id
-          in: path
-          description: User ID
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - in: query
-          name: subject
-          schema:
-            type: string
-        - in: query
-          name: body
-          schema:
-            type: string
-        - in: query
-          name: to
-          schema:
-            type: string
-        - in: query
-          name: toName
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: from
-          schema:
-            type: string
-        - in: query
-          name: fromName
-          required: false
-          schema:
-            type: string
+      - name: id
+        in: path
+        description: User ID
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: subject
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: body
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: to
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: toName
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: from
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: fromName
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
       responses:
-        '200':
+        "200":
           description: search results matching criteria
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponse'
-        '400':
+        "400":
           description: bad input parameter
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The specified resource was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /mail/{id}/advsend:
     post:
       summary: Sends an Email with Advanced Options
+      description: "Sends An email through one of your mail orders allowing additional\
+        \ options such as file attachments, cc, bcc, etc."
       operationId: sendAdvMailById
-      description: Sends An email through one of your mail orders allowing additional options such as file attachments, cc, bcc, etc.
       parameters:
-        - name: id
-          in: path
-          description: User ID
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
+      - name: id
+        in: path
+        description: User ID
         required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      requestBody:
         content:
           application/json:
             schema:
@@ -192,58 +246,76 @@ paths:
               $ref: '#/components/schemas/SendMailForm'
           text/plain:
             schema:
-              type: string  
+              type: string
+        required: true
       responses:
-        '200':
+        "200":
           description: search results matching criteria
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponse'
-        '400':
+        "400":
           description: bad input parameter
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The specified resource was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /mail/{id}/log:
     get:
       summary: displays the mail log
+      description: "By passing in the appropriate options, you can search for\navailable\
+        \ inventory in the system\n"
       operationId: viewMailLogById
-      description: |
-        By passing in the appropriate options, you can search for
-        available inventory in the system
       parameters:
-        - name: id
-          in: path
-          description: User ID
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - in: query
-          name: searchString
-          description: pass an optional search string for looking up inventory
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: skip
-          description: number of records to skip for pagination
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: maximum number of records to return
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-            maximum: 50
+      - name: id
+        in: path
+        description: User ID
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: searchString
+        in: query
+        description: pass an optional search string for looking up inventory
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: skip
+        in: query
+        description: number of records to skip for pagination
+        required: false
+        style: form
+        explode: true
+        schema:
+          minimum: 0
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        description: maximum number of records to return
+        required: false
+        style: form
+        explode: true
+        schema:
+          maximum: 50
+          minimum: 0
+          type: integer
+          format: int32
       responses:
-        '200':
+        "200":
           description: search results matching criteria
           content:
             application/json:
@@ -251,36 +323,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/MailLog'
-        '400':
+        "400":
           description: bad input parameter
 components:
-  # Security scheme definitions (see Authentication)
-  securitySchemes:
-    apiLoginAuth:
-      type: apiKey
-      in: header
-      name: X-API-LOGIN
-    apiPasswordAuth:
-      type: apiKey
-      in: header
-      name: X-API-PASS
-    apiKeyAuth:
-      type: apiKey
-      in: header
-      name: X-API-KEY
-  # Reusable schemas (data models)
   schemas:
-    # Schema for error response body
-    Error:
+    ErrorResponse:
+      required:
+      - code
+      - message
       type: object
       properties:
         code:
           type: string
         message:
           type: string
-      required:
-        - code
-        - message  
     GenericResponse:
       type: object
       properties:
@@ -295,6 +351,10 @@ components:
       items:
         $ref: '#/components/schemas/MailOrder'
     MailOrder:
+      required:
+      - id
+      - status
+      - username
       type: object
       properties:
         id:
@@ -312,10 +372,6 @@ components:
         comment:
           type: string
           example: main mail account
-      required:
-        - id
-        - status
-        - username
     MailLog:
       type: object
       properties:
@@ -324,43 +380,49 @@ components:
           format: int64
       description: Mail Order Details
     MailContact:
+      required:
+      - email
       type: object
-      description: An Email Contact
       properties:
         email:
           type: string
-          example: johndoe@company.com
           description: The email address
+          example: johndoe@company.com
         name:
           type: string
-          example: John Doe
           description: Optional contact name
-      required:
-        - email
+          example: John Doe
+      description: An Email Contact
     MailAttachment:
+      required:
+      - data
       type: object
-      description: A File attachment for an email
       properties:
         filename:
           type: string
-          example: company_logo.png
           description: Optional filename to specify for the attachment.
+          example: company_logo.png
         data:
           type: string
-          format: binary
           description: Contents of the attached file
-      required:
-        - data
+          format: binary
+      description: A File attachment for an email
     SendMail:
+      required:
+      - body
+      - from
+      - id
+      - subject
+      - to
       type: object
       properties:
         id:
           type: integer
+          description: The ID of the Mail order within our system to use as the Mail
+            Account.
           format: int64
-          description: The ID of the Mail order within our system to use as the Mail Account.
         from:
-          description: The contact whom is sending the email.
-          $ref: '#/components/schemas/MailContact'          
+          $ref: '#/components/schemas/MailContact'
         to:
           type: array
           description: The Contact whom is the primary recipient of this email.
@@ -373,23 +435,26 @@ components:
         body:
           type: string
           description: The main email contents.
-          example: >
-            The package you ordered on 2021-01-23 has been delivered.
-            If the package is broken into many pieces, please blaim
-            someone else.
+          example: "The package you ordered on 2021-01-23 has been delivered. If the\
+            \ package is broken into many pieces, please blaim someone else.\n"
         replyto:
           type: array
-          description: Optional list of Contacts that specify where replies to the email should be sent instead of the _from_ address.
+          description: Optional list of Contacts that specify where replies to the
+            email should be sent instead of the _from_ address.
           items:
             $ref: '#/components/schemas/MailContact'
         cc:
           type: array
-          description: Optional list of Contacts that should receive copies of the email.  They are listed on the email and anyone getting the email can see this full list of Contacts who received the email as well.
+          description: Optional list of Contacts that should receive copies of the
+            email.  They are listed on the email and anyone getting the email can
+            see this full list of Contacts who received the email as well.
           items:
             $ref: '#/components/schemas/MailContact'
         bcc:
           type: array
-          description: Optional list of Contacts that should receive copies of the email.  They are hidden on the email and anyone gettitng the email would not see the other people getting the email in this list.
+          description: Optional list of Contacts that should receive copies of the
+            email.  They are hidden on the email and anyone gettitng the email would
+            not see the other people getting the email in this list.
           items:
             $ref: '#/components/schemas/MailContact'
         attachments:
@@ -398,12 +463,6 @@ components:
           items:
             $ref: '#/components/schemas/MailAttachment'
       description: Details for an Email
-      required:
-        - id
-        - from
-        - to
-        - subject
-        - body
     SendMailForm:
       type: object
       properties:
@@ -411,59 +470,60 @@ components:
           type: integer
           format: int64
       description: Details for an Email
-  # Reusable request bodies
-  requestBodies: {}
-  # Reusable responses, such as 401 Unauthorized or 400 Bad Request
   responses:
     NotFound:
       description: The specified resource was not found
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/ErrorResponse'
     Unauthorized:
       description: Unauthorized
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'  
-  # Reusable response headers
-  headers: {}
-  # Reusable examples
-  examples: {}
-  # Reusable links
-  links: {}
-  # Reusable callbacks
-  callbacks: {}
-  # Reusable path, query, header and cookie parameters
+            $ref: '#/components/schemas/ErrorResponse'
   parameters:
-    offsetParam:      # Can be referenced via '#/components/parameters/offsetParam'
+    offsetParam:
       name: offset
       in: query
       description: Number of items to skip before returning the results.
       required: false
+      style: form
+      explode: true
       schema:
+        minimum: 0
         type: integer
         format: int32
-        minimum: 0
         default: 0
-    limitParam:       # Can be referenced as '#/components/parameters/limitParam'
+    limitParam:
       name: limit
       in: query
       description: Maximum number of items to return.
       required: false
+      style: form
+      explode: true
       schema:
+        maximum: 100
+        minimum: 1
         type: integer
         format: int32
-        minimum: 1
-        maximum: 100
-        default: 20  
-security:
-  - apiLoginAuth: []
-    apiPasswordAuth: []
-  - apiLoginAuth: []
-    apiKeyAuth: []
-externalDocs:
-  description: |
-    https://www.interserver.net/blog/
-  url: 'https://interserver.net/tips/'
+        default: 20
+  examples: {}
+  requestBodies: {}
+  headers: {}
+  securitySchemes:
+    apiLoginAuth:
+      type: apiKey
+      name: X-API-LOGIN
+      in: header
+    apiPasswordAuth:
+      type: apiKey
+      name: X-API-PASS
+      in: header
+    apiKeyAuth:
+      type: apiKey
+      name: X-API-KEY
+      in: header
+  links: {}
+  callbacks: {}
