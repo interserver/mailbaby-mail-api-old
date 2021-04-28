@@ -1,8 +1,15 @@
 <?php
+$cmds = [];
+$onlyLangs = [];
+//$onlyLangs = ['php','html2'];
 echo "Grabbing the samples repo\n";
-passthru('cd '.__DIR__.'; git clone git@github.com:interserver/mailbaby-api-samples.git; cp -f .git/hooks/commit-msg mailbaby-api-samples/.git/hooks');
-$buildOpenApi = false;
+if (!file_exists(__DIR__.'/mailbaby-api-samples'))
+	passthru('cd '.__DIR__.'; git clone git@github.com:interserver/mailbaby-api-samples.git; cp -f .git/hooks/commit-msg mailbaby-api-samples/.git/hooks');
+else
+	passthru('cd '.__DIR__.'/mailbaby-api-samples && git pull --all');
+$buildOpenApi = true;
 $buildSwagger = true;
+$spec = 'https://raw.githubusercontent.com/interserver/mailbaby-api-spec/master/swagger.yaml';
 if ($buildOpenApi === true) {
 	echo "Generating a list of OpenAPI Generator clients we can generate\n";
 	$out = `npx @openapitools/openapi-generator-cli list`;
@@ -14,11 +21,20 @@ if ($buildOpenApi === true) {
 		$cats[strtolower($cat)] = $catMatches[1];
 	}
 	echo "Generating OpenAPI Generator samples\n";
-	@mkdir('mailbaby-api-samples/openapi/output', 0777, true);
-	foreach ($cats['client'] as $idx => $lang) {
-		echo "[$idx] OpenAPI Generator Language: $lang\n";
-		@mkdir('mailbaby-api-samples/openapi/'.$lang, 0777, true);
-		passthru('npx @openapitools/openapi-generator-cli generate -i public/openapi.yaml -g '.$lang.' -o mailbaby-api-samples/openapi/'.$lang.'/ 2>&1 | tee mailbaby-api-samples/openapi/output/'.$lang.'.txt');
+	foreach (['output', 'config'] as $dir)
+		@mkdir(__DIR__.'/mailbaby-api-samples/openapi-'.$dir, 0777, true);
+	foreach (['client', 'documentation'] as $type) {
+		foreach ($cats[$type] as $idx => $lang) {
+			if (count($onlyLangs) > 0 && !in_array($lang, $onlyLangs))
+				continue;
+			echo "[$idx] OpenAPI {$type} Generator Language: $lang\n";
+			if (!file_exists(__DIR__.'/mailbaby-api-samples/openapi-config/'.$lang.'.yaml'))
+				passthru('npx @openapitools/openapi-generator-cli config-help -g '.$lang.' -f yamlsample > mailbaby-api-samples/openapi-config/'.$lang.'.yaml');
+			$cmd = 'cd '.__DIR__.'/mailbaby-api-samples && rm -rf openapi-'.$type.'/'.$lang.';mkdir -p openapi-'.$type.'/'.$lang.';npx @openapitools/openapi-generator-cli generate -i '.$spec.' -g '.$lang.' -o openapi-'.$type.'/'.$lang.'/ '.(file_exists(__DIR__.'/mailbaby-api-samples/openapi-config/'.$lang.'.yaml') ? '-c openapi-config/'.$lang.'.yaml' : '').' 2>&1 | tee openapi-output/'.$type.'-'.$lang.'.txt;';
+			$cmds[] = $cmd;
+			//echo $cmd.PHP_EOL;
+			passthru($cmd);
+		}
 	}
 }
 if ($buildSwagger === true) {
@@ -27,14 +43,29 @@ if ($buildSwagger === true) {
 	echo "Generating and parsing a list of Swagger Generator clients we can generate\n";
 	$langs = explode(', ', trim(exec('cd '.__DIR__.' && java -jar swagger-codegen-cli.jar langs | cut -d \[ -f2-|cut -d\] -f1')));
 	echo "Generating Swagger Generator samples\n";
-	@mkdir('mailbaby-api-samples/swagger/output', 0777, true);
+	foreach (['output', 'options', 'config'] as $dir)
+		@mkdir(__DIR__.'/mailbaby-api-samples/swagger-'.$dir, 0777, true);
 	foreach ($langs as $idx => $lang) {
-		echo "[$idx] Swagger Generator Language: $lang\n";
-		@mkdir('mailbaby-api-samples/swagger/'.$lang, 0777, true);
-		passthru('cd '.__DIR__.' && java -jar swagger-codegen-cli.jar generate -v -l '.$lang.' -i public/openapi.yaml -o mailbaby-api-samples/swagger/'.$lang.'/ 2>&1 | tee mailbaby-api-samples/swagger/output/'.$lang.'.txt');
+		if (count($onlyLangs) > 0 && !in_array($lang, $onlyLangs))
+			continue;
+		$type = (in_array($lang, $cats['documentation']) ? 'documentation' : 'client');
+		echo "[$idx] Swagger {$type} Generator Language: $lang\n";
+		if (!file_exists(__DIR__.'/mailbaby-api-samples/swagger-options/'.$lang.'.json'))
+			passthru('curl -s https://generator.swagger.io/api/gen/clients/'.$lang.' | jq -M . > mailbaby-api-samples/swagger-options/'.$lang.'.json');
+		$cmd = 'cd '.__DIR__.'/mailbaby-api-samples && rm -rf swagger-'.$type.'/'.$lang.';mkdir -p swagger-'.$type.'/'.$lang.';java -jar '.__DIR__.'/swagger-codegen-cli.jar generate -l '.$lang.' -i '.$spec.' -o swagger-'.$type.'/'.$lang.'/ '.(file_exists(__DIR__.'/mailbaby-api-samples/swagger-config/'.$lang.'.json') ? '-c swagger-config/'.$lang.'.json' : '').' 2>&1 | tee swagger-output/'.$type.'-'.$lang.'.txt;';
+		$cmds[] = $cmd;
+		//echo $cmd.PHP_EOL;
+		passthru($cmd);
 	}
-	passthru('cd '.__DIR__.' && rm -f swagger-codegen-cli.jar');
+	
 }
-echo "Committing updated samples and cleanign up\n";
-passthru('cd '.__DIR__.'/mailbaby-api-samples && git add -A && git commit -a -m "Updated API samples" && cd '.__DIR__.' && rm -rf mailbaby-api-samples openapitools.json');
+echo "Committing updated samples\n";
+passthru('cd '.__DIR__.'/mailbaby-api-samples && git add -A && git commit -a -m "Updated API samples" && git push --all');
+echo "Cleaning up\n";
+if ($buildOpenApi === true)
+	passthru('cd '.__DIR__.' && rm -f openapitools.json');
+if ($buildSwagger === true)
+	passthru('cd '.__DIR__.' && rm -f swagger-codegen-cli.jar');
+//passthru('cd '.__DIR__.' && rm -rf mailbaby-api-samples');
+//echo implode(PHP_EOL, $cmds).PHP_EOL;
 echo "done!\n";
