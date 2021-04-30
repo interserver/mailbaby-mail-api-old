@@ -8,18 +8,19 @@ if (!file_exists(__DIR__.'/mailbaby-api-samples'))
 else
 	passthru('cd '.__DIR__.'/mailbaby-api-samples && git pull --all');
 $buildOpenApi = true;
+$buildOpenApi = false;
 $buildSwagger = true;
 $spec = 'https://raw.githubusercontent.com/interserver/mailbaby-api-spec/master/swagger.yaml';
+echo "Generating a list of OpenAPI Generator clients we can generate\n";
+$out = `npx @openapitools/openapi-generator-cli list`;
+echo "Parsing OpenAPI Generator clients list\n";
+preg_match_all('/^([^\s]+) generators:.*\n\n/msuU', $out, $matches);
+$cats = [];
+foreach ($matches[1] as $idx => $cat) {
+	preg_match_all('/^\s+- (\S+)\s.*/muU', $matches[0][$idx], $catMatches);
+	$cats[strtolower($cat)] = $catMatches[1];
+}
 if ($buildOpenApi === true) {
-	echo "Generating a list of OpenAPI Generator clients we can generate\n";
-	$out = `npx @openapitools/openapi-generator-cli list`;
-	echo "Parsing OpenAPI Generator clients list\n";
-	preg_match_all('/^([^\s]+) generators:.*\n\n/msuU', $out, $matches);
-	$cats = [];
-	foreach ($matches[1] as $idx => $cat) {
-		preg_match_all('/^\s+- (\S+)\s.*/muU', $matches[0][$idx], $catMatches);
-		$cats[strtolower($cat)] = $catMatches[1];
-	}
 	echo "Generating OpenAPI Generator samples\n";
 	foreach (['output', 'config'] as $dir)
 		@mkdir(__DIR__.'/mailbaby-api-samples/openapi-'.$dir, 0777, true);
