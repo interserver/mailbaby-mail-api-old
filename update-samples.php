@@ -8,11 +8,15 @@ if (!file_exists(__DIR__.'/mailbaby-api-samples'))
 else
 	passthru('cd '.__DIR__.'/mailbaby-api-samples && git pull --all');
 $buildOpenApi = true;
-$buildOpenApi = false;
 $buildSwagger = true;
 $spec = 'https://raw.githubusercontent.com/interserver/mailbaby-api-spec/master/swagger.yaml';
+echo "Determining latest OpenAPI Generator jar\n";
+$latest = trim(`curl -s https://oss.sonatype.org/content/repositories/snapshots/org/openapitools/openapi-generator-cli/5.1.1-SNAPSHOT/|grep "[0-9].jar<"|cut -d\" -f2|sort|tail -n 1`);
+echo "Grabbing latest OpenAPI Generator jar\n";
+passthru('cd '.__DIR__.' && wget "'.$latest.'" -O openapi-generator-cli.jar');
 echo "Generating a list of OpenAPI Generator clients we can generate\n";
-$out = `npx @openapitools/openapi-generator-cli list`;
+$cmd = 'java -jar '.__DIR__.'/openapi-generator-cli.jar list';
+$out = `{$cmd}`;
 echo "Parsing OpenAPI Generator clients list\n";
 preg_match_all('/^([^\s]+) generators:.*\n\n/msuU', $out, $matches);
 $cats = [];
@@ -30,8 +34,8 @@ if ($buildOpenApi === true) {
 				continue;
 			echo "[$idx] OpenAPI {$type} Generator Language: $lang\n";
 			if (!file_exists(__DIR__.'/mailbaby-api-samples/openapi-config/'.$lang.'.yaml'))
-				passthru('npx @openapitools/openapi-generator-cli config-help -g '.$lang.' -f yamlsample > mailbaby-api-samples/openapi-config/'.$lang.'.yaml');
-			$cmd = 'cd '.__DIR__.'/mailbaby-api-samples && rm -rf openapi-'.$type.'/'.$lang.';mkdir -p openapi-'.$type.'/'.$lang.';npx @openapitools/openapi-generator-cli generate -i '.$spec.' -g '.$lang.' -o openapi-'.$type.'/'.$lang.'/ '.(file_exists(__DIR__.'/mailbaby-api-samples/openapi-config/'.$lang.'.yaml') ? '-c openapi-config/'.$lang.'.yaml' : '').' 2>&1 | tee openapi-output/'.$type.'-'.$lang.'.txt;';
+				passthru('java -jar '.__DIR__.'/openapi-generator-cli.jar config-help -g '.$lang.' -f yamlsample > mailbaby-api-samples/openapi-config/'.$lang.'.yaml');
+			$cmd = 'cd '.__DIR__.'/mailbaby-api-samples && rm -rf openapi-'.$type.'/'.$lang.';mkdir -p openapi-'.$type.'/'.$lang.';java -jar '.__DIR__.'/openapi-generator-cli.jar generate -i '.$spec.' -g '.$lang.' -o openapi-'.$type.'/'.$lang.'/ '.(file_exists(__DIR__.'/mailbaby-api-samples/openapi-config/'.$lang.'.yaml') ? '-c openapi-config/'.$lang.'.yaml' : '').' 2>&1 | tee openapi-output/'.$type.'-'.$lang.'.txt;';
 			$cmds[] = $cmd;
 			//echo $cmd.PHP_EOL;
 			passthru($cmd);
@@ -39,8 +43,9 @@ if ($buildOpenApi === true) {
 	}
 }
 if ($buildSwagger === true) {
-	echo "Grabbing the Swagger Generator jar\n";
+	echo "Determining latest Swagger Generator jar\n";
 	$latest = trim(`curl -s https://oss.sonatype.org/content/repositories/snapshots/io/swagger/codegen/v3/swagger-codegen-cli/3.0.26-SNAPSHOT/|grep "[0-9].jar<"|cut -d\" -f2|sort|tail -n 1`);
+	echo "Grabbing latest Swagger Generator jar\n";
 	passthru('cd '.__DIR__.' && wget "'.$latest.'" -O swagger-codegen-cli.jar');
 	echo "Generating and parsing a list of Swagger Generator clients we can generate\n";
 	$langs = explode(', ', trim(exec('cd '.__DIR__.' && java -jar swagger-codegen-cli.jar langs | cut -d \[ -f2-|cut -d\] -f1')));
@@ -65,7 +70,7 @@ echo "Committing updated samples\n";
 passthru('cd '.__DIR__.'/mailbaby-api-samples && git add -A && git commit -a -m "Updated API samples" && git push --all');
 echo "Cleaning up\n";
 if ($buildOpenApi === true)
-	passthru('cd '.__DIR__.' && rm -f openapitools.json');
+	passthru('cd '.__DIR__.' && rm -f openapi-generator-cli.jar openapitools.json');
 if ($buildSwagger === true)
 	passthru('cd '.__DIR__.' && rm -f swagger-codegen-cli.jar');
 //passthru('cd '.__DIR__.' && rm -rf mailbaby-api-samples');
