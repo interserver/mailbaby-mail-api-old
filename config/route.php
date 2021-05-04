@@ -19,9 +19,8 @@ Route::get('/ping', function($request) {
 });
 Route::group('/mail', function() {
 	Route::get('', 'app\controller\Mail@index');
-	Route::get('/{id:\d+}', 'app\controller\Mail@view');
-	Route::post('/{id:\d+}/send', 'app\controller\Mail@send');
-	Route::post('/{id:\d+}/log', 'app\controller\Mail@log');
+	Route::post('/send', 'app\controller\Mail@send');
+	Route::post('/log', 'app\controller\Mail@log');
 	
 })->middleware([
 	app\middleware\AuthCheck::class

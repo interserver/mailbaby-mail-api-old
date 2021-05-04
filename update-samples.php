@@ -40,7 +40,8 @@ if ($buildOpenApi === true) {
 }
 if ($buildSwagger === true) {
 	echo "Grabbing the Swagger Generator jar\n";
-	passthru('cd '.__DIR__.' && wget https://repo1.maven.org/maven2/io/swagger/codegen/v3/swagger-codegen-cli/3.0.25/swagger-codegen-cli-3.0.25.jar -O swagger-codegen-cli.jar');
+	$latest = trim(`curl -s https://oss.sonatype.org/content/repositories/snapshots/io/swagger/codegen/v3/swagger-codegen-cli/3.0.26-SNAPSHOT/|grep "[0-9].jar<"|cut -d\" -f2|sort|tail -n 1`);
+	passthru('cd '.__DIR__.' && wget "'.$latest.'" -O swagger-codegen-cli.jar');
 	echo "Generating and parsing a list of Swagger Generator clients we can generate\n";
 	$langs = explode(', ', trim(exec('cd '.__DIR__.' && java -jar swagger-codegen-cli.jar langs | cut -d \[ -f2-|cut -d\] -f1')));
 	echo "Generating Swagger Generator samples\n";

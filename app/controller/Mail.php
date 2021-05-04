@@ -50,17 +50,28 @@ class Mail
 		return json($return);
 	}
 	
-	public function send(Request $request, $id) {
+	public function send(Request $request) {
 		$accountInfo = $request->accountInfo;
-		if (!v::intVal()->validate($id))
-			return response('The specified ID was invalid.', 400);
-		$order = Db::table('mail')
-			->where('mail_custid', $accountInfo->account_id)
-			->where('mail_id', $id)
-			->where('mail_status', 'active')
-			->first();
-		if (is_null($order))
-			return response('The mail order with the specified ID was not found or not active.', 404);
+		$id = $request->post('id');
+		if (!is_null($id)) {
+			if (!v::intVal()->validate($id))
+				return response('The specified ID was invalid.', 400);
+			$order = Db::table('mail')
+				->where('mail_custid', $accountInfo->account_id)
+				->where('mail_id', $id)
+				->where('mail_status', 'active')
+				->first();
+			if (is_null($order))
+				return response('The mail order with the specified ID was not found or not active.', 404);
+		} else {
+			$order = Db::table('mail')
+				->where('mail_custid', $accountInfo->account_id)
+				->where('mail_status', 'active')
+				->first();
+			if (is_null($order))
+				return response('No active mail order was found.', 404);
+			$id = $order->mail_id;
+		}
 		$sent = false;
 		$from = $request->post('from');
 		$fromName = $request->post('fromName', '');
@@ -99,16 +110,28 @@ class Mail
 		
 	}
 
-	public function log(Request $request, $id) {
+	public function log(Request $request) {
 		$accountInfo = $request->accountInfo;
-		$order = Db::table('mail')
-			->where('mail_custid', $accountInfo->account_id)
-			->where('mail_id', $id)
-			->where('mail_status', 'active')
-			->get();
-		if (is_null($order))
-			return response('The mail order with the specified ID was not found or not active.', 404);
-		
+		$id = $request->post('id');
+		if (!is_null($id)) {
+			if (!v::intVal()->validate($id))
+				return response('The specified ID was invalid.', 400);
+			$order = Db::table('mail')
+				->where('mail_custid', $accountInfo->account_id)
+				->where('mail_id', $id)
+				->where('mail_status', 'active')
+				->first();
+			if (is_null($order))
+				return response('The mail order with the specified ID was not found or not active.', 404);
+		} else {
+			$order = Db::table('mail')
+				->where('mail_custid', $accountInfo->account_id)
+				->where('mail_status', 'active')
+				->first();
+			if (is_null($order))
+				return response('No active mail order was found.', 404);
+			$id = $order->mail_id;
+		}
 	}
 
 	public function viewtest(Request $request)
