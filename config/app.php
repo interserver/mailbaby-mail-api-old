@@ -13,6 +13,6 @@
  */
 
 return [
-    'debug' => env('APP_DEBUG', false),
-    'default_timezone' => 'Asia/Shanghai',
+	'debug' => env('APP_DEBUG', false),
+	'default_timezone' => 'America/New_York',
 ];

@@ -25,3 +25,4 @@ Route::group('/mail', function() {
 })->middleware([
 	app\middleware\AuthCheck::class
 ]);
+Route::disableDefaultRoute();
