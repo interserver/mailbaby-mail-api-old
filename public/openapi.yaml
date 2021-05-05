@@ -40,16 +40,6 @@ paths:
     get:
       summary: displays a list of mail service orders
       operationId: getMailOrders
-      parameters:
-      - name: id
-        in: query
-        description: The ID of your mail order this will be sent through.
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int64
       responses:
         "200":
           description: OK
