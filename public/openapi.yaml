@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Mail Baby API
-  description: This is an API for accesssing the mail services.
+  description: This is an API defintion for accesssing the Mail.Baby mail service.
   termsOfService: https://www.interserver.net/terms-of-service.html
   contact:
     name: Joe Huss
@@ -16,17 +16,14 @@ externalDocs:
     https://www.interserver.net/blog/
   url: https://interserver.net/tips/
 servers:
-- url: https://api.mailbaby.net/
+- url: https://api.mailbaby.net
   description: Live API Endpoint
-- url: http://mynew.interserver.net:8787/
+- url: http://mynew.interserver.net:8787
   description: Temporary API Endpoint
 - url: https://virtserver.swaggerhub.com/InterServer/MailBaby/1.0.0
   description: SwaggerHub API Auto Mocking
 security:
-- apiLoginAuth: []
-  apiPasswordAuth: []
-- apiLoginAuth: []
-  apiKeyAuth: []
+- apiKeyAuth: []
 paths:
   /ping:
     get:
@@ -43,7 +40,16 @@ paths:
     get:
       summary: displays a list of mail service orders
       operationId: getMailOrders
-      parameters: []
+      parameters:
+      - name: id
+        in: query
+        description: The ID of your mail order this will be sent through.
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int64
       responses:
         "200":
           description: OK
@@ -59,143 +65,31 @@ paths:
                 type: string
           links:
             sendMailByIdLink:
-              operationId: sendMailById
+              operationId: sendMail
               parameters:
                 id: $response.body#/0/id
-              description: "The `id` value returned in the response can be used as\
-                \ the `id` parameter in `GET /mail/{id}/send`."
-            getMailByIdLink:
-              operationId: getMailById
-              parameters:
-                id: $response.body#/0/id
-              description: "The `id` value returned in the response can be used as\
-                \ the `id` parameter in `GET /mail/{id}`."
+              description: The `id` value returned in the response can be used as
+                the `id` parameter in `GET /mail/advsend`.
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /mail/order:
-    get:
-      summary: validatess order details before placing an order
-      operationId: validateMailOrder
-      parameters: []
-      responses:
-        "200":
-          description: list of mail orders
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      deprecated: true
-    post:
-      summary: places a mail order
-      description: Adds an item to the system
-      operationId: placeMailOrder
-      parameters: []
-      requestBody:
-        description: Inventory item to add
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MailOrder'
-      responses:
-        "200":
-          description: list of mail orders
-        "400":
-          description: "invalid input, object invalid"
-        "409":
-          description: an existing item already exists
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      deprecated: true
-  /mail/{id}:
-    get:
-      summary: Gets mail order information by id
-      description: returns information about a mail order in the system with the given
-        id.
-      operationId: getMailById
-      parameters:
-      - name: id
-        in: path
-        description: User ID
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
-      responses:
-        "200":
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MailOrder'
-  /mail/{id}/send:
+  /mail/send:
     post:
       summary: Sends an Email
       description: Sends An email through one of your mail orders.
-      operationId: sendMailById
-      parameters:
-      - name: id
-        in: path
-        description: User ID
+      operationId: sendMail
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SendMail'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMail'
         required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
-      - name: subject
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: body
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: to
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: toName
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: from
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: fromName
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
       responses:
         "200":
           description: search results matching criteria
@@ -217,36 +111,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /mail/{id}/advsend:
+  /mail/advsend:
     post:
       summary: Sends an Email with Advanced Options
       description: "Sends An email through one of your mail orders allowing additional\
         \ options such as file attachments, cc, bcc, etc."
-      operationId: sendAdvMailById
-      parameters:
-      - name: id
-        in: path
-        description: User ID
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
+      operationId: sendAdvMail
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SendMail'
-          application/xml:
-            schema:
-              $ref: '#/components/schemas/SendMail'
+              $ref: '#/components/schemas/SendMailAdv'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SendMailForm'
-          text/plain:
-            schema:
-              type: string
+              $ref: '#/components/schemas/SendMailAdv'
         required: true
       responses:
         "200":
@@ -269,7 +147,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /mail/{id}/log:
+  /mail/log:
     get:
       summary: displays the mail log
       description: "By passing in the appropriate options, you can search for\navailable\
@@ -277,11 +155,11 @@ paths:
       operationId: viewMailLogById
       parameters:
       - name: id
-        in: path
-        description: User ID
-        required: true
-        style: simple
-        explode: false
+        in: query
+        description: The ID of your mail order this will be sent through.
+        required: false
+        style: form
+        explode: true
         schema:
           type: integer
           format: int64
@@ -325,6 +203,46 @@ paths:
                   $ref: '#/components/schemas/MailLog'
         "400":
           description: bad input parameter
+  /mail/order:
+    get:
+      summary: validatess order details before placing an order
+      operationId: validateMailOrder
+      parameters: []
+      responses:
+        "200":
+          description: list of mail orders
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      deprecated: true
+    post:
+      summary: places a mail order
+      description: Adds an item to the system
+      operationId: placeMailOrder
+      parameters: []
+      requestBody:
+        description: Inventory item to add
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MailOrder'
+      responses:
+        "200":
+          description: list of mail orders
+        "400":
+          description: "invalid input, object invalid"
+        "409":
+          description: an existing item already exists
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      deprecated: true
 components:
   schemas:
     ErrorResponse:
@@ -411,23 +329,37 @@ components:
       required:
       - body
       - from
+      - subject
+      - to
+      type: object
+      properties:
+        to:
+          type: string
+          description: The Contact whom is the primary recipient of this email.
+          example: johndoe@company.com
+        from:
+          type: string
+          description: The contact whom is the this email is from.
+          example: janedoe@company.com
+        subject:
+          type: string
+          description: The subject or title of the email
+          example: Attention Client
+        body:
+          type: string
+          description: The main email contents.
+          example: This is an email to inform you that something noteworthy happened.
+      description: Details for an Email
+    SendMailAdv:
+      title: Email details
+      required:
+      - body
+      - from
       - id
       - subject
       - to
       type: object
       properties:
-        id:
-          type: integer
-          description: The ID of the Mail order within our system to use as the Mail
-            Account.
-          format: int64
-        from:
-          $ref: '#/components/schemas/MailContact'
-        to:
-          type: array
-          description: The Contact whom is the primary recipient of this email.
-          items:
-            $ref: '#/components/schemas/MailContact'
         subject:
           type: string
           description: The subject or title of the email
@@ -437,6 +369,22 @@ components:
           description: The main email contents.
           example: "The package you ordered on 2021-01-23 has been delivered. If the\
             \ package is broken into many pieces, please blaim someone else.\n"
+        from:
+          type: array
+          description: The contact whom is the this email is from.
+          items:
+            $ref: '#/components/schemas/SendMailAdv_from'
+        to:
+          type: array
+          description: The Contact whom is the primary recipient of this email.
+          items:
+            $ref: '#/components/schemas/MailContact'
+        id:
+          type: integer
+          description: The ID of the Mail order within our system to use as the Mail
+            Account.
+          format: int64
+          example: 5000
         replyto:
           type: array
           description: Optional list of Contacts that specify where replies to the
@@ -463,13 +411,20 @@ components:
           items:
             $ref: '#/components/schemas/MailAttachment'
       description: Details for an Email
-    SendMailForm:
+    SendMailAdv_from:
+      required:
+      - email
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
-      description: Details for an Email
+        email:
+          type: string
+          description: The email address
+          example: johndoe@company.com
+        name:
+          type: string
+          description: Optional contact name
+          example: John Doe
+      description: An Email Contact
   responses:
     NotFound:
       description: The specified resource was not found
@@ -513,14 +468,6 @@ components:
   requestBodies: {}
   headers: {}
   securitySchemes:
-    apiLoginAuth:
-      type: apiKey
-      name: X-API-LOGIN
-      in: header
-    apiPasswordAuth:
-      type: apiKey
-      name: X-API-PASS
-      in: header
     apiKeyAuth:
       type: apiKey
       name: X-API-KEY
