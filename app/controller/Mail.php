@@ -74,7 +74,6 @@ class Mail
 		}
 		$sent = false;
 		$from = $request->post('from');
-		$fromName = $request->post('fromName', '');
 		$email = $request->post('body');
 		$subject = $request->post('subject');
 		$isHtml = strip_tags($email) != $email;
@@ -94,8 +93,8 @@ class Mail
 		$mailer->Subject = $subject;
 		$mailer->isHTML($isHtml);
 		try {
-			$mailer->setFrom($from, $fromName);
-			$mailer->addReplyTo($from, $fromName);
+			$mailer->setFrom($from);
+			$mailer->addReplyTo($from);
 			foreach ($who as $to)
 				$mailer->addAddress($to);
 			$mailer->Body = $email;
