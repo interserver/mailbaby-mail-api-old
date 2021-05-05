@@ -18,9 +18,9 @@ Route::get('/ping', function($request) {
 	return response('Server is up and running', 200);	
 });
 Route::group('/mail', function() {
-	Route::get('', 'app\controller\Mail@index');
-	Route::post('/send', 'app\controller\Mail@send');
-	Route::post('/log', 'app\controller\Mail@log');
+	Route::get('', [app\controller\Mail::class, 'index']);
+	Route::post('/send', [app\controller\Mail::class, 'send']);
+	Route::post('/log', [app\controller\Mail::class, 'log']);
 	
 })->middleware([
 	app\middleware\AuthCheck::class
