@@ -10,6 +10,29 @@ use Respect\Validation\Validator as v;
 
 class Mail
 {
+	
+	/**
+	* returns a json response
+	* 
+	* @param array $body array of data to pass
+	* @param int $status status code
+	* @return \support\Response
+	*/
+	public function jsonResponse($body, $status = 200) {
+		return \support\Response($status, ['Content-Type' => 'application/json'], json_encode($body, JSON_UNESCAPED_UNICODE)); 
+	}
+	
+	/**
+	* returns a json error response
+	* 
+	* @param string $message the error details
+	* @param int $status the error code
+	* @return \support\Response
+	*/
+	public function jsonErrorResponse($message, $status = 200) {
+		return \support\Response($status, ['Content-Type' => 'application/json'], json_encode(['code' => $status, 'message' => $message], JSON_UNESCAPED_UNICODE));
+	}
+
 	public function index(Request $request)
 	{
 		$accountInfo = $request->accountInfo;
@@ -55,21 +78,21 @@ class Mail
 		$id = $request->post('id');
 		if (!is_null($id)) {
 			if (!v::intVal()->validate($id))
-				return response('The specified ID was invalid.', 400);
+				return $this->jsonErrorResponse('The specified ID was invalid.', 400);
 			$order = Db::table('mail')
 				->where('mail_custid', $accountInfo->account_id)
 				->where('mail_id', $id)
 				->where('mail_status', 'active')
 				->first();
 			if (is_null($order))
-				return response('The mail order with the specified ID was not found or not active.', 404);
+				return $this->jsonErrorResponse('The mail order with the specified ID was not found or not active.', 404);
 		} else {
 			$order = Db::table('mail')
 				->where('mail_custid', $accountInfo->account_id)
 				->where('mail_status', 'active')
 				->first();
 			if (is_null($order))
-				return response('No active mail order was found.', 404);
+				return $this->jsonErrorResponse('No active mail order was found.', 404);
 			$id = $order->mail_id;
 		}
 		$sent = false;
@@ -114,21 +137,21 @@ class Mail
 		$id = $request->post('id');
 		if (!is_null($id)) {
 			if (!v::intVal()->validate($id))
-				return response('The specified ID was invalid.', 400);
+				return $this->jsonErrorResponse('The specified ID was invalid.', 400);
 			$order = Db::table('mail')
 				->where('mail_custid', $accountInfo->account_id)
 				->where('mail_id', $id)
 				->where('mail_status', 'active')
 				->first();
 			if (is_null($order))
-				return response('The mail order with the specified ID was not found or not active.', 404);
+				return $this->jsonErrorResponse('The mail order with the specified ID was not found or not active.', 404);
 		} else {
 			$order = Db::table('mail')
 				->where('mail_custid', $accountInfo->account_id)
 				->where('mail_status', 'active')
 				->first();
 			if (is_null($order))
-				return response('No active mail order was found.', 404);
+				return $this->jsonErrorResponse('No active mail order was found.', 404);
 			$id = $order->mail_id;
 		}
 	}

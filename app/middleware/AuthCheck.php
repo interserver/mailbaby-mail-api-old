@@ -9,6 +9,18 @@ use support\Db;
 
 class AuthCheck implements MiddlewareInterface
 {
+	
+	/**
+	* returns a json error response
+	* 
+	* @param string $message the error details
+	* @param int $status the error code
+	* @return \support\Response
+	*/
+	public function jsonErrorResponse($message, $status = 200) {
+		return \support\Response($status, ['Content-Type' => 'application/json'], json_encode(['code' => $status, 'message' => $message], JSON_UNESCAPED_UNICODE));
+	}
+
 	public function process(Request $request, callable $next) : Response
 	{
 		$GLOBALS['accountInfo'] = null;
@@ -17,7 +29,7 @@ class AuthCheck implements MiddlewareInterface
 		//$pass = $request->header('x-api-pass');
 		//if (is_null($login) || (is_null($pass) && is_null($key)))
 		if (is_null($key))
-			return response('API key is missing or invalid', 401);
+			return $this->jsonErrorResponse('API key is missing or invalid', 401);
 		/*if (!is_null($pass))
 			$accountInfo = Db::table('accounts')
 				->where('account_lid', $login)
@@ -31,7 +43,7 @@ class AuthCheck implements MiddlewareInterface
 				->where('account_sec_data', $key)
 				->first();
 		if (is_null($accountInfo))
-			return response('API key is missing or invalid', 401);
+			return $this->jsonErrorResponse('API key is missing or invalid', 401);
 		$request->accountInfo = $accountInfo;			
 		//Log::info('auth check response:'.var_export($accountInfo,true));
 		return $next($request);
