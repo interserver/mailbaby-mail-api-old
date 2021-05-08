@@ -1,11 +1,11 @@
 <?php
 $buildOpenApi = true;
-$buildSwagger = false;
+$buildSwagger = true;
 $runCmds = true;
 $showCmds = false;
 $removeJars = true;
 $onlyLangs = [];
-$onlyLangs = ['php','html2'];
+//$onlyLangs = ['php','html2'];
 $cmds = [];
 $spec = 'https://raw.githubusercontent.com/interserver/mailbaby-api-spec/master/swagger.yaml';
 echo "Grabbing the samples repo\n";
