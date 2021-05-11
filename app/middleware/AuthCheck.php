@@ -9,7 +9,7 @@ use support\Db;
 
 class AuthCheck implements MiddlewareInterface
 {
-	
+
 	/**
 	* returns a json error response
 	* 
@@ -18,7 +18,7 @@ class AuthCheck implements MiddlewareInterface
 	* @return \support\Response
 	*/
 	public function jsonErrorResponse($message, $status = 200) {
-		return \support\Response($status, ['Content-Type' => 'application/json'], json_encode(['code' => $status, 'message' => $message], JSON_UNESCAPED_UNICODE));
+		return support\Response($status, ['Content-Type' => 'application/json'], json_encode(['code' => $status, 'message' => $message], JSON_UNESCAPED_UNICODE));
 	}
 
 	public function process(Request $request, callable $next) : Response

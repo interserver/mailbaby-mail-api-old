@@ -19,7 +19,7 @@ class Mail
 	* @return \support\Response
 	*/
 	public function jsonResponse($body, $status = 200) {
-		return \support\Response($status, ['Content-Type' => 'application/json'], json_encode($body, JSON_UNESCAPED_UNICODE)); 
+		return support\Response($status, ['Content-Type' => 'application/json'], json_encode($body, JSON_UNESCAPED_UNICODE)); 
 	}
 	
 	/**
