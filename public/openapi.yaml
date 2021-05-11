@@ -1,20 +1,24 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
   title: Mail Baby API
-  description: This is an API defintion for accesssing the Mail.Baby mail service.
+  description: "![](https://www.mail.baby/wp-content/uploads/2021/01/logo.png)\n#\
+    \ Overview\nThis is the API interface to the [Mail Baby](https//mail.baby/) Mail\
+    \ services provided by [InterServer](https://www.interserver.net). To use this\
+    \ service you must have an account with us at [my.interserver.net](https://my.interserver.net).\n\
+    \nTo autheticate withourt API you need to get your API Key from the Account Security\
+    \ page."
   termsOfService: https://www.interserver.net/terms-of-service.html
   contact:
-    name: Joe Huss
-    url: https://www.interserver.net/contact-information.html
-    email: detain@interserver.net
+    name: Mike Lavrik
+    url: https://www.mail.baby/contact/
+    email: support@interserver.net
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   version: 1.0.0
 externalDocs:
-  description: |
-    https://www.interserver.net/blog/
-  url: https://interserver.net/tips/
+  description: https://www.mail.baby/faq/
+  url: https://www.mail.baby/tips/
 servers:
 - url: https://api.mailbaby.net
   description: Live API Endpoint
