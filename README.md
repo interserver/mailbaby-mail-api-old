@@ -41,7 +41,7 @@ git clone git@github.com:stoplightio/elements.git
 cd elements
 sed s#"\"httpsnippet\".*$"#"\"httpsnippet\": \"detain/httpsnippet\#master\","#g -i packages/elements-core/package.json
 src="https://raw.githubusercontent.com/stoplightio/Public-APIs/master/reference/zoom/openapi.yaml"
-dst="https://raw.githubusercontent.com/interserver/mailbaby-api-spec/master/swagger.yaml"
+dst="https://raw.githubusercontent.com/interserver/mailbaby-mail-api/master/public/spec/openapi.yaml"
 for i in examples/angular/src/app/api/api.component.ts examples/react-gatsby/src/pages/zoom-api.tsx examples/react-cra/src/components/API.tsx; do
   sed s#"${src}"#"${dst}"#g -i $i
 done

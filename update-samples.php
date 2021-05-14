@@ -7,7 +7,7 @@ $removeJars = true;
 $onlyLangs = [];
 //$onlyLangs = ['php','html2'];
 $cmds = [];
-$spec = 'https://raw.githubusercontent.com/interserver/mailbaby-api-spec/master/swagger.yaml';
+$spec = 'https://raw.githubusercontent.com/interserver/mailbaby-mail-api/master/public/spec/openapi.yaml';
 echo "Grabbing the samples repo\n";
 if (!file_exists(__DIR__.'/mailbaby-api-samples'))
 	passthru('cd '.__DIR__.'; git clone git@github.com:interserver/mailbaby-api-samples.git; cp -f .git/hooks/commit-msg mailbaby-api-samples/.git/hooks');
