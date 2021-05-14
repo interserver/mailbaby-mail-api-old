@@ -1,0 +1,609 @@
+{
+  "openapi" : "3.0.3",
+  "info" : {
+    "title" : "MailBaby Email Delivery Service API",
+    "description" : "**Send emails fast and with confidence through our easy to use [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) API interface.**\n\n\n# 📌 Overview\n\nThis is the API interface to the [Mail Baby](https//mail.baby/) Mail services provided by [InterServer](https://www.interserver.net). To use this service you must have an account with us at [my.interserver.net](https://my.interserver.net).\n\n\n# 🔐 Authentication\n\nIn order to use most of the API calls you must pass credentials from the [my.interserver.net](https://my.interserver.net/) site.  \n\nWe support several different authentication methods but the preferred method is to use the **API Key** which you can get from the [Account Security](https://my.interserver.net/account_security) page.\n\n_Alternatively , you may use your normal **Login Email** and **Password** from [my.interserver.net](https://my.interserver.net/); however for security we recomend using the **API Key**_\n",
+    "termsOfService" : "https://www.interserver.net/terms-of-service.html",
+    "contact" : {
+      "name" : "Mail Baby",
+      "url" : "https://www.mail.baby/contact/",
+      "email" : "support@interserver.net"
+    },
+    "license" : {
+      "name" : "Apache 2.0",
+      "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version" : "1.0.0"
+  },
+  "externalDocs" : {
+    "description" : "FAQ",
+    "url" : "https://www.mail.baby/tips/"
+  },
+  "servers" : [ {
+    "url" : "https://virtserver.swaggerhub.com/InterServer/Mail-Baby/1.0.0",
+    "description" : "SwaggerHub API Auto Mocking"
+  }, {
+    "url" : "https://api.mailbaby.net",
+    "description" : "Live API Endpoint"
+  }, {
+    "url" : "http://mystage.interserver.net:8787",
+    "description" : "Temporary API Endpoint"
+  }, {
+    "url" : "https://virtserver.swaggerhub.com/InterServer/MailBaby/1.0.0",
+    "description" : "SwaggerHub API Auto Mocking"
+  } ],
+  "security" : [ {
+    "apiKeyAuth" : [ ]
+  } ],
+  "paths" : {
+    "/mail" : {
+      "get" : {
+        "summary" : "displays a list of mail service orders",
+        "operationId" : "getMailOrders",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/inline_response_200"
+                  }
+                }
+              }
+            },
+            "links" : {
+              "sendMailByIdLink" : {
+                "operationId" : "sendMail",
+                "parameters" : {
+                  "id" : "$response.body#/0/id"
+                },
+                "description" : "The `id` value returned in the response can be used as the `id` parameter in `GET /mail/advsend`."
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_401"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_401"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mail/send" : {
+      "post" : {
+        "summary" : "Sends an Email",
+        "description" : "Sends an email through one of your mail orders.\n\n*Note*: If you want to send to multiple recipients or use file attachments use the advsend (Advanced Send) call instead.\n",
+        "operationId" : "sendMail",
+        "requestBody" : {
+          "content" : {
+            "application/x-www-form-urlencoded" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SendMail"
+              }
+            },
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SendMail"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "search results matching criteria",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "The specified resource was not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_401"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_401"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "The specified resource was not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_401"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mail/advsend" : {
+      "post" : {
+        "summary" : "Sends an Email with Advanced Options",
+        "description" : "Sends An email through one of your mail orders allowing additional options such as file attachments, cc, bcc, etc.",
+        "operationId" : "sendAdvMail",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SendMailAdv"
+              }
+            },
+            "application/x-www-form-urlencoded" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SendMailAdv"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "search results matching criteria",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "The specified resource was not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_401"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_401"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "The specified resource was not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_401"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mail/log" : {
+      "get" : {
+        "summary" : "displays the mail log",
+        "description" : "By passing in the appropriate options, you can search for\navailable inventory in the system\n",
+        "operationId" : "viewMailLog",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "query",
+          "description" : "The ID of your mail order this will be sent through.",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "searchString",
+          "in" : "query",
+          "description" : "pass an optional search string for looking up inventory",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "skip",
+          "in" : "query",
+          "description" : "number of records to skip for pagination",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "minimum" : 0,
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "description" : "maximum number of records to return",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "maximum" : 50,
+            "minimum" : 0,
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "search results matching criteria",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/MailLog"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "bad input parameter"
+          }
+        }
+      }
+    },
+    "/ping" : {
+      "get" : {
+        "summary" : "Checks if the server is running",
+        "operationId" : "pingServer",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "Server is up and running"
+          },
+          "default" : {
+            "description" : "Something is wrong"
+          }
+        },
+        "security" : [ ]
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "GenericResponse" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "string",
+            "example" : "ok"
+          },
+          "text" : {
+            "type" : "string",
+            "example" : "The command completed successfully."
+          }
+        }
+      },
+      "MailLog" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "description" : "Mail Order Details"
+      },
+      "MailContact" : {
+        "required" : [ "email" ],
+        "type" : "object",
+        "properties" : {
+          "email" : {
+            "type" : "string",
+            "description" : "The email address",
+            "example" : "johndoe@company.com"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Optional contact name",
+            "example" : "John Doe"
+          }
+        },
+        "description" : "An Email Contact"
+      },
+      "MailAttachment" : {
+        "required" : [ "data" ],
+        "type" : "object",
+        "properties" : {
+          "filename" : {
+            "type" : "string",
+            "description" : "Optional filename to specify for the attachment.",
+            "example" : "company_logo.png"
+          },
+          "data" : {
+            "type" : "string",
+            "description" : "Contents of the attached file",
+            "format" : "binary"
+          }
+        },
+        "description" : "A File attachment for an email"
+      },
+      "SendMail" : {
+        "required" : [ "body", "from", "subject", "to" ],
+        "type" : "object",
+        "properties" : {
+          "to" : {
+            "type" : "string",
+            "description" : "The Contact whom is the primary recipient of this email.",
+            "example" : "johndoe@company.com"
+          },
+          "from" : {
+            "type" : "string",
+            "description" : "The contact whom is the this email is from.",
+            "example" : "janedoe@company.com"
+          },
+          "subject" : {
+            "type" : "string",
+            "description" : "The subject or title of the email",
+            "example" : "Attention Client"
+          },
+          "body" : {
+            "type" : "string",
+            "description" : "The main email contents.",
+            "example" : "This is an email to inform you that something noteworthy happened."
+          }
+        },
+        "description" : "Details for an Email"
+      },
+      "SendMailAdv" : {
+        "title" : "Email details",
+        "required" : [ "body", "from", "id", "subject", "to" ],
+        "type" : "object",
+        "properties" : {
+          "subject" : {
+            "type" : "string",
+            "description" : "The subject or title of the email",
+            "example" : "Your Package has been Delivered!"
+          },
+          "body" : {
+            "type" : "string",
+            "description" : "The main email contents.",
+            "example" : "The package you ordered on 2021-01-23 has been delivered. If the package is broken into many pieces, please blaim someone else.\n"
+          },
+          "from" : {
+            "type" : "array",
+            "description" : "The contact whom is the this email is from.",
+            "items" : {
+              "$ref" : "#/components/schemas/SendMailAdv_from"
+            }
+          },
+          "to" : {
+            "type" : "array",
+            "description" : "The Contact whom is the primary recipient of this email.",
+            "items" : {
+              "$ref" : "#/components/schemas/MailContact"
+            }
+          },
+          "id" : {
+            "type" : "integer",
+            "description" : "The ID of the Mail order within our system to use as the Mail Account.",
+            "format" : "int64",
+            "example" : 5000
+          },
+          "replyto" : {
+            "type" : "array",
+            "description" : "Optional list of Contacts that specify where replies to the email should be sent instead of the _from_ address.",
+            "items" : {
+              "$ref" : "#/components/schemas/MailContact"
+            }
+          },
+          "cc" : {
+            "type" : "array",
+            "description" : "Optional list of Contacts that should receive copies of the email.  They are listed on the email and anyone getting the email can see this full list of Contacts who received the email as well.",
+            "items" : {
+              "$ref" : "#/components/schemas/MailContact"
+            }
+          },
+          "bcc" : {
+            "type" : "array",
+            "description" : "Optional list of Contacts that should receive copies of the email.  They are hidden on the email and anyone gettitng the email would not see the other people getting the email in this list.",
+            "items" : {
+              "$ref" : "#/components/schemas/MailContact"
+            }
+          },
+          "attachments" : {
+            "type" : "array",
+            "description" : "Optional file attachments to include in the email",
+            "items" : {
+              "$ref" : "#/components/schemas/MailAttachment"
+            }
+          }
+        },
+        "description" : "Details for an Email"
+      },
+      "inline_response_200" : {
+        "required" : [ "id", "status", "username" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "example" : 1234
+          },
+          "status" : {
+            "type" : "string",
+            "example" : "active"
+          },
+          "username" : {
+            "type" : "string",
+            "example" : "mb1234"
+          },
+          "password" : {
+            "type" : "string",
+            "example" : "guest123"
+          },
+          "comment" : {
+            "type" : "string",
+            "example" : "main mail account"
+          }
+        }
+      },
+      "inline_response_401" : {
+        "required" : [ "code", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "SendMailAdv_from" : {
+        "required" : [ "email" ],
+        "type" : "object",
+        "properties" : {
+          "email" : {
+            "type" : "string",
+            "description" : "The email address",
+            "example" : "johndoe@company.com"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Optional contact name",
+            "example" : "John Doe"
+          }
+        },
+        "description" : "An Email Contact"
+      }
+    },
+    "responses" : {
+      "BadInput" : {
+        "description" : "The specified resource was not found",
+        "content" : {
+          "application/json" : {
+            "schema" : {
+              "$ref" : "#/components/schemas/inline_response_401"
+            }
+          }
+        }
+      },
+      "AlreadyExists" : {
+        "description" : "The specified resource was not found",
+        "content" : {
+          "application/json" : {
+            "schema" : {
+              "required" : [ "code", "message" ],
+              "type" : "object",
+              "properties" : {
+                "code" : {
+                  "type" : "string"
+                },
+                "message" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFound" : {
+        "description" : "The specified resource was not found",
+        "content" : {
+          "application/json" : {
+            "schema" : {
+              "$ref" : "#/components/schemas/inline_response_401"
+            }
+          }
+        }
+      },
+      "Unauthorized" : {
+        "description" : "Unauthorized",
+        "content" : {
+          "application/json" : {
+            "schema" : {
+              "$ref" : "#/components/schemas/inline_response_401"
+            }
+          }
+        }
+      }
+    },
+    "parameters" : {
+      "offsetParam" : {
+        "name" : "offset",
+        "in" : "query",
+        "description" : "Number of items to skip before returning the results.",
+        "required" : false,
+        "style" : "form",
+        "explode" : true,
+        "schema" : {
+          "minimum" : 0,
+          "type" : "integer",
+          "format" : "int32",
+          "default" : 0
+        }
+      },
+      "limitParam" : {
+        "name" : "limit",
+        "in" : "query",
+        "description" : "Maximum number of items to return.",
+        "required" : false,
+        "style" : "form",
+        "explode" : true,
+        "schema" : {
+          "maximum" : 100,
+          "minimum" : 1,
+          "type" : "integer",
+          "format" : "int32",
+          "default" : 20
+        }
+      }
+    },
+    "examples" : { },
+    "requestBodies" : { },
+    "headers" : { },
+    "securitySchemes" : {
+      "apiKeyAuth" : {
+        "type" : "apiKey",
+        "name" : "X-API-KEY",
+        "in" : "header"
+      }
+    },
+    "links" : { },
+    "callbacks" : { }
+  }
+}
