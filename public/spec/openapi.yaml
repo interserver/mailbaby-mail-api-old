@@ -27,7 +27,7 @@ info:
 
     _Alternatively , you may use your normal **Login Email** and **Password** from [my.interserver.net](https://my.interserver.net/); however for security we recomend using the **API Key**_
   version: 1.0.0
-  title: MailBaby Email Delivery Service API
+  title: MailBaby Email Delivery API
   contact:
     email: support@interserver.net
     url: https://www.mail.baby/contact/
