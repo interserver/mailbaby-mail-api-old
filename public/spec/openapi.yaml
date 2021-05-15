@@ -221,20 +221,6 @@ components:
           type: integer
           format: int64
       description: Mail Order Details
-    MailAttachment:
-      type: object
-      description: A File attachment for an email
-      properties:
-        filename:
-          type: string
-          example: company_logo.png
-          description: (optional) Filename to specify for the attachment.
-        data:
-          type: string
-          format: binary
-          description: Contents of the attached file
-      required:
-        - data
     SendMail:
       type: object
       description: Details for an Email
@@ -356,9 +342,21 @@ components:
               - email
         attachments:
           type: array
-          description: (optional) File attachments to include in the email
+          description: (optional) File attachments to include in the email.  The file contents must be base64 encoded!
           items:
-            $ref: '#/components/schemas/MailAttachment'
+            type: object
+            description: A File attachment for an email
+            properties:
+              filename:
+                type: string
+                example: company_logo.png
+                description: (optional) Filename to specify for the attachment.
+              data:
+                type: string
+                format: binary
+                description: Contents of the attached file (must be base64 encoded)
+            required:
+              - data
         id:
           type: integer
           format: int64
