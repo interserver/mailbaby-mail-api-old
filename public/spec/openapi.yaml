@@ -320,7 +320,7 @@ components:
               name:
                 type: string
                 example: Support Staff
-                description: Name (_optional_) to use for the sending contact.
+                description: (optional) Name to use for the sending contact.
             required:
               - email
         cc:
@@ -337,7 +337,7 @@ components:
               name:
                 type: string
                 example: Jane Doe
-                description: Name (_optional_) to use for the CC contact.
+                description: (optional) Name to use for the CC contact.
             required:
               - email
         bcc:
@@ -354,7 +354,7 @@ components:
               name:
                 type: string
                 example: Records Department
-                description: Name (_optional_) to use for the BCC contact.
+                description: (optional) Name to use for the BCC contact.
             required:
               - email
         attachments:
