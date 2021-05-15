@@ -364,7 +364,6 @@ components:
           example: 5000
       description: Details for an Email
       required:
-        - id
         - from
         - to
         - subject
