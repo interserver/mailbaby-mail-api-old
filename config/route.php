@@ -15,17 +15,18 @@
 use Webman\Route;
 
 Route::get('/ping', function($request) {
-	return response('Server is up and running', 200);	
+	return response('Server is up and running', 200);
 });
 Route::options('/ping', function($request) {
-	return response('Server is up and running', 200);	
+	return response('Server is up and running', 200);
 });
 
 Route::group('/mail', function() {
 	Route::get('', [app\controller\Mail::class, 'index']);
-	Route::post('/send', [app\controller\Mail::class, 'send']);
+    Route::post('/send', [app\controller\Mail::class, 'send']);
+    Route::post('/advsend', [app\controller\Mail::class, 'advsend']);
 	Route::post('/log', [app\controller\Mail::class, 'log']);
-	
+
 })->middleware([
 	app\middleware\AuthCheck::class
 ]);
