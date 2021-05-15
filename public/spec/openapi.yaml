@@ -273,22 +273,19 @@ components:
           description: The main email contents.
           example: The package you ordered on 2021-01-23 has been delivered. If the package is broken into many pieces, please blaim someone else.
         from:
-          type: array
-          description: A list of destionation email addresses to send this from.
-          items:
-            type: object
-            description: An Email Contact
-            properties:
-              email:
-                type: string
-                example: business@company.com
-                description: The email address
-              name:
-                type: string
-                example: The Man
-                description: (optional) Name to use for the sending contact.
-            required:
-              - email
+          type: object
+          description: The information to use for the From address in the email. from.
+          properties:
+            email:
+              type: string
+              example: business@company.com
+              description: The email address
+            name:
+              type: string
+              example: The Man
+              description: (optional) Name to use for the sending contact.
+          required:
+            - email
         to:
           type: array
           description: A list of destionation email addresses to send this to
