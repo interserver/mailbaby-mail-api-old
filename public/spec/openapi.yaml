@@ -1,14 +1,12 @@
 openapi: 3.0.3
 servers:
   # Added by API Auto Mocking Plugin
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/InterServer/Mail-Baby/1.0.0
   - description: Live API Endpoint
     url: 'https://api.mailbaby.net'
   - description: Temporary API Endpoint
     url: 'http://mystage.interserver.net:8787'
   - description: SwaggerHub API Auto Mocking
-    url: 'https://virtserver.swaggerhub.com/InterServer/MailBaby/1.0.0'
+    url: https://virtserver.swaggerhub.com/InterServer/Mail-Baby/1.0.0
 info:
   description: |
     **Send emails fast and with confidence through our easy to use [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) API interface.**
