@@ -228,7 +228,7 @@ components:
         filename:
           type: string
           example: company_logo.png
-          description: Optional filename to specify for the attachment.
+          description: (optional) Filename to specify for the attachment.
         data:
           type: string
           format: binary
@@ -286,7 +286,7 @@ components:
               name:
                 type: string
                 example: The Man
-                description: Name (_optional_) to use for the sending contact.
+                description: (optional) Name to use for the sending contact.
             required:
               - email
         to:
@@ -303,69 +303,69 @@ components:
               name:
                 type: string
                 example: John Doe
-                description: Name (_optional_) to use for the destination contact.
+                description: (optional) Name to use for the destination contact.
             required:
               - email
         replyto:
           type: array
-          description: A (_optional_) list of email addresses that specify where replies to the email should be sent instead of the _from_ address.
+          description: (optional) A list of email addresses that specify where replies to the email should be sent instead of the _from_ address.
           items:
             type: object
             description: An Email Contact
             properties:
               email:
                 type: string
-                example: business@company.com
+                example: support@company.com
                 description: The email address
               name:
                 type: string
-                example: The Man
+                example: Support Staff
                 description: Name (_optional_) to use for the sending contact.
             required:
               - email
         cc:
           type: array
-          description: A (_optional_) list of email addresses to carbon copy this message to.  They are listed on the email and anyone getting the email can see this full list of Contacts who received the email as well.
+          description: (optional) A list of email addresses to carbon copy this message to.  They are listed on the email and anyone getting the email can see this full list of Contacts who received the email as well.
           items:
             type: object
             description: An Email Contact
             properties:
               email:
                 type: string
-                example: johndoe@isp.com
+                example: janedoe@isp.com
                 description: The email address
               name:
                 type: string
-                example: John Doe
-                description: Name (_optional_) to use for the destination contact.
+                example: Jane Doe
+                description: Name (_optional_) to use for the CC contact.
             required:
               - email
         bcc:
           type: array
-          description: A (_optional_) list of email addresses that should receive copies of the email.  They are hidden on the email and anyone gettitng the email would not see the other people getting the email in this list.
+          description: (optional) list of email addresses that should receive copies of the email.  They are hidden on the email and anyone gettitng the email would not see the other people getting the email in this list.
           items:
             type: object
             description: An Email Contact
             properties:
               email:
                 type: string
-                example: johndoe@isp.com
+                example: records@company.com
                 description: The email address
               name:
                 type: string
-                example: John Doe
-                description: Name (_optional_) to use for the destination contact.
+                example: Records Department
+                description: Name (_optional_) to use for the BCC contact.
             required:
               - email
         attachments:
           type: array
-          description: Optional file attachments to include in the email
+          description: (optional) File attachments to include in the email
           items:
             $ref: '#/components/schemas/MailAttachment'
         id:
           type: integer
           format: int64
-          description: The ID of the Mail order within our system to use as the Mail Account.
+          description: (optional)  ID of the Mail order within our system to use as the Mail Account.
           example: 5000
       description: Details for an Email
       required:
