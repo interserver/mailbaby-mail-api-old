@@ -178,11 +178,18 @@ class Mail
             foreach ($data['to'] as $contact)
                 $mailer->addAddress($contact['email'], isset($contact['name']) ? $contact['name'] : '');
             foreach (['ReplyTo', 'CC', 'BCC'] as $type) {
-                if (isset($data[strtolower($type)]))
-                    foreach ($data[strtolower($type)] as $contact) {
-                        $call = 'add'.$type;
-                        $mailer->$call($contact['email'], isset($contact['name']) ? $contact['name'] : '');
+                if (isset($data[strtolower($type)])) {
+                    if (is_array($data[strtolower($type)])) {
+                        if (count($data[strtolower($type)]) > 0) {
+                            foreach ($data[strtolower($type)] as $contact) {
+                                $call = 'add'.$type;
+                                $mailer->$call($contact['email'], isset($contact['name']) ? $contact['name'] : '');
+                            }
+                        }
+                    } else {
+                        return $this->jsonErrorResponse('The "'.strtolower($type).'" field is supposed to be an array.', 404);
                     }
+                }
             }
             $mailer->Body = $data['body'];
             $mailer->preSend();
@@ -193,7 +200,6 @@ class Mail
         } catch (PHPMailer\PHPMailer\Exception $e) {
             return json(['status' => 'error', 'text' => $mailer->ErrorInfo]);
         }
-
     }
 
 	public function log(Request $request) {
