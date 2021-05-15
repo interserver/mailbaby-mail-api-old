@@ -191,6 +191,20 @@ class Mail
                     }
                 }
             }
+            if (isset($data['attachments'])) {
+                if (is_array($data['attachments'])) {
+                    if (count($data['attachments']) > 0) {
+                        foreach ($data['attachments'] as $idx => $attachment) {
+                            $fileData = base64_decode($attachment['data']);
+                            $localFile = tempnam(sys_get_temp_dir(), 'attachment');
+                            file_put_contents($localFile, $fileData);
+                            $mailer->addAttachment($localFile, isset($attachment['filename']) ? $attachment['filename'] : '');
+                        }
+                    }
+                } else {
+                    return $this->jsonErrorResponse('The "attachments" field is supposed to be an array.', 404);
+                }
+            }
             $mailer->Body = $data['body'];
             $mailer->preSend();
             if (!$mailer->send()) {
