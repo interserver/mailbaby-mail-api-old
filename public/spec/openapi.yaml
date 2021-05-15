@@ -285,57 +285,102 @@ components:
         body:
           type: string
           description: The main email contents.
-          example: >
-            The package you ordered on 2021-01-23 has been delivered.
-            If the package is broken into many pieces, please blaim
-            someone else.
+          example: The package you ordered on 2021-01-23 has been delivered. If the package is broken into many pieces, please blaim someone else.
         from:
           type: array
-          description: The contact whom is the this email is from.
+          description: A list of destionation email addresses to send this from.
           items:
             type: object
             description: An Email Contact
             properties:
               email:
                 type: string
-                example: johndoe@company.com
+                example: business@company.com
                 description: The email address
               name:
                 type: string
-                example: John Doe
-                description: Optional contact name
+                example: The Man
+                description: Name (_optional_) to use for the sending contact.
             required:
               - email
         to:
           type: array
-          description: The Contact whom is the primary recipient of this email.
+          description: A list of destionation email addresses to send this to
           items:
-            $ref: '#/components/schemas/MailContact'
-        id:
-          type: integer
-          format: int64
-          description: The ID of the Mail order within our system to use as the Mail Account.
-          example: 5000
+            type: object
+            description: An Email Contact
+            properties:
+              email:
+                type: string
+                example: johndoe@isp.com
+                description: The email address
+              name:
+                type: string
+                example: John Doe
+                description: Name (_optional_) to use for the destination contact.
+            required:
+              - email
         replyto:
           type: array
-          description: Optional list of Contacts that specify where replies to the email should be sent instead of the _from_ address.
+          description: A (_optional_) list of email addresses that specify where replies to the email should be sent instead of the _from_ address.
           items:
-            $ref: '#/components/schemas/MailContact'
+            type: object
+            description: An Email Contact
+            properties:
+              email:
+                type: string
+                example: business@company.com
+                description: The email address
+              name:
+                type: string
+                example: The Man
+                description: Name (_optional_) to use for the sending contact.
+            required:
+              - email
         cc:
           type: array
-          description: Optional list of Contacts that should receive copies of the email.  They are listed on the email and anyone getting the email can see this full list of Contacts who received the email as well.
+          description: A (_optional_) list of email addresses to carbon copy this message to.  They are listed on the email and anyone getting the email can see this full list of Contacts who received the email as well.
           items:
-            $ref: '#/components/schemas/MailContact'
+            type: object
+            description: An Email Contact
+            properties:
+              email:
+                type: string
+                example: johndoe@isp.com
+                description: The email address
+              name:
+                type: string
+                example: John Doe
+                description: Name (_optional_) to use for the destination contact.
+            required:
+              - email
         bcc:
           type: array
-          description: Optional list of Contacts that should receive copies of the email.  They are hidden on the email and anyone gettitng the email would not see the other people getting the email in this list.
+          description: A (_optional_) list of email addresses that should receive copies of the email.  They are hidden on the email and anyone gettitng the email would not see the other people getting the email in this list.
           items:
-            $ref: '#/components/schemas/MailContact'
+            type: object
+            description: An Email Contact
+            properties:
+              email:
+                type: string
+                example: johndoe@isp.com
+                description: The email address
+              name:
+                type: string
+                example: John Doe
+                description: Name (_optional_) to use for the destination contact.
+            required:
+              - email
         attachments:
           type: array
           description: Optional file attachments to include in the email
           items:
             $ref: '#/components/schemas/MailAttachment'
+        id:
+          type: integer
+          format: int64
+          description: The ID of the Mail order within our system to use as the Mail Account.
+          example: 5000
       description: Details for an Email
       required:
         - id
