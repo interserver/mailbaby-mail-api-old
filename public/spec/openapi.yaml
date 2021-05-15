@@ -221,20 +221,6 @@ components:
           type: integer
           format: int64
       description: Mail Order Details
-    MailContact:
-      type: object
-      description: An Email Contact
-      properties:
-        email:
-          type: string
-          example: johndoe@company.com
-          description: The email address
-        name:
-          type: string
-          example: John Doe
-          description: Optional contact name
-      required:
-        - email
     MailAttachment:
       type: object
       description: A File attachment for an email
