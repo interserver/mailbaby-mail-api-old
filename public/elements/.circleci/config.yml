@@ -1,0 +1,148 @@
+version: 2.1
+
+executors:
+  cypress-default:
+    docker:
+      - image: cypress/base:12
+        environment:
+          ## this enables colors in the output
+          TERM: xterm
+
+jobs:
+  lint-and-check:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - checkout
+      - run: yarn --frozen-lockfile
+      - run: yarn type-check
+      - run: yarn lint
+      - run: yarn test.prod
+  build:
+    working_directory: /mnt/ramdisk/project
+    docker:
+      - image: circleci/node:12
+    resource_class: large
+    environment:
+      CYPRESS_CACHE_FOLDER: /mnt/ramdisk/.cache/Cypress
+      YARN_CACHE_FOLDER: /mnt/ramdisk/.cache/yarn
+    steps:
+      - checkout
+      - run: yarn --frozen-lockfile
+      - run: yarn build
+      - persist_to_workspace:
+          root: /mnt/ramdisk/
+          paths:
+            - project
+            - .cache/Cypress
+  build-docs:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - checkout
+      - run: yarn --frozen-lockfile
+      - run: yarn build.docs
+  run-e2e-tests:
+    executor: cypress-default
+    resource_class: large
+    working_directory: /mnt/ramdisk/project
+    environment:
+      CYPRESS_CACHE_FOLDER: /mnt/ramdisk/.cache/Cypress
+      YARN_CACHE_FOLDER: /mnt/ramdisk/.cache/yarn
+    parameters:
+      example-name:
+        type: string
+    steps:
+      - attach_workspace:
+          at: /mnt/ramdisk/
+      - run:
+          name: Example - Install dependencies
+          working_directory: /mnt/ramdisk/project/examples/<<parameters.example-name>>
+          command: yarn install --frozen-lockfile
+      - run:
+          name: Example - Build
+          working_directory: /mnt/ramdisk/project/examples/<<parameters.example-name>>
+          command: yarn build
+      - run:
+          name: Run E2E checks
+          command: yarn e2e:run:<<parameters.example-name>>
+      - store_test_results:
+          name: Upload test results
+          path: cypress/results
+      - store_artifacts:
+          name: Upload Cypress Videos
+          path: cypress/results/videos
+          destination: videos
+      - store_artifacts:
+          name: Upload Cypress Screenshots
+          path: cypress/results/screenshots
+          destination: screenshots
+  lockfile-maintenance:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - checkout
+      - run:
+          command: | 
+            git checkout main
+            export BRANCH_NAME=feat/lockfile-maintenance-ci-job-$(date +"%m-%d-%Y") && git checkout -b $BRANCH_NAME
+            yarn upgrade
+            git add yarn.lock
+            git commit -m "chore: weekly lockfile maintenance"
+            git push --set-upstream origin $BRANCH_NAME
+            BODY='{"head":''"'${BRANCH_NAME}'"'',"base":"main","title":"Weekly lockfile maintenance"}' && curl -X POST -H "Accept:application/vnd.github.v3+json" -u $GIT_AUTHOR_NAME:$GH_TOKEN https://api.github.com/repos/stoplightio/elements/pulls -d "$BODY"
+  release:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: yarn --frozen-lockfile
+      - run:
+          name: run release script
+          command: yarn lerna publish from-package --dist-tag beta --yes
+workflows:
+  version: 2
+  test-and-release:
+    jobs:
+      - lint-and-check
+      - build
+      - build-docs
+      - run-e2e-tests:
+          name: e2e-react-cra
+          example-name: react-cra
+          requires:
+            - build
+      - run-e2e-tests:
+          name: e2e-react-gatsby
+          example-name: react-gatsby
+          requires:
+            - build
+      - run-e2e-tests:
+          name: e2e-angular
+          example-name: angular
+          requires:
+            - build
+      - release:
+          requires:
+            - lint-and-check
+            - build
+            - build-docs
+            - e2e-react-cra
+            - e2e-react-gatsby
+            - e2e-angular
+          filters:
+            branches:
+              only: 
+                - main
+  perform-lockfile-maintenance:
+    triggers:
+        - schedule:
+            cron: "0 3 * * 1"
+            filters:
+              branches:
+                only:
+                  - main
+    jobs:
+      - lockfile-maintenance
