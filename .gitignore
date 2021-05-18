@@ -4,3 +4,4 @@
 *.log
 .env
 mailbaby-api-samples
+composer.lock
