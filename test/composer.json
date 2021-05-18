@@ -1,0 +1,12 @@
+{
+    "name": "my/test",
+    "authors": [
+        {
+            "name": "Joe Huss",
+            "email": "detain@interserver.net"
+        }
+    ],
+    "require": {
+        "interserver/mailbaby-client-php": "dev-master"
+    }
+}
