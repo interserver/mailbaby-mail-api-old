@@ -22,8 +22,6 @@ info:
     In order to use most of the API calls you must pass credentials from the [my.interserver.net](https://my.interserver.net/) site.  
 
     We support several different authentication methods but the preferred method is to use the **API Key** which you can get from the [Account Security](https://my.interserver.net/account_security) page.
-
-    _Alternatively , you may use your normal **Login Email** and **Password** from [my.interserver.net](https://my.interserver.net/); however for security we recomend using the **API Key**_
   version: 1.0.0
   title: MailBaby Email Delivery API
   contact:
