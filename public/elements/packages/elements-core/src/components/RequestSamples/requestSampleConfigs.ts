@@ -142,12 +142,6 @@ export const requestSampleConfigs: RequestSampleConfigs = {
     mosaicCodeViewerLanguage: 'php',
     httpSnippetLanguage: 'php',
     libraries: {
-      'pecl/http 1': {
-        httpSnippetLibrary: 'http1',
-      },
-      'pecl/http 2': {
-        httpSnippetLibrary: 'http2',
-      },
       cURL: {
         httpSnippetLibrary: 'curl',
       },
