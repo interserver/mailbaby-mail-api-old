@@ -2,8 +2,8 @@
 namespace app\middleware;
 
 use Webman\MiddlewareInterface;
-use support\Response;
-use support\Request;
+use Webman\Http\Response;
+use Webman\Http\Request;
 use support\Db;
 //use support\bootstrap\Log;
 
