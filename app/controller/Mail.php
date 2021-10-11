@@ -2,9 +2,11 @@
 namespace app\controller;
 
 use support\Request;
+use support\Response;
 use support\Db;
 use support\bootstrap\Log;
 use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
 use Respect\Validation\Validator as v;
 
@@ -18,8 +20,8 @@ class Mail
 	* @param int $status status code
 	* @return \support\Response
 	*/
-	public function jsonResponse($body, $status = 200) {
-		return support\Response($status, ['Content-Type' => 'application/json'], json_encode($body, JSON_UNESCAPED_UNICODE));
+	public function jsonResponse($body, $status = 200) : Response {
+		return Response($status, ['Content-Type' => 'application/json'], json_encode($body, JSON_UNESCAPED_UNICODE));
 	}
 
 	/**
@@ -29,12 +31,11 @@ class Mail
 	* @param int $status the error code
 	* @return \support\Response
 	*/
-	public function jsonErrorResponse($message, $status = 200) {
-		return \support\Response($status, ['Content-Type' => 'application/json'], json_encode(['code' => $status, 'message' => $message], JSON_UNESCAPED_UNICODE));
+	public function jsonErrorResponse($message, $status = 200) : Response {
+		return Response($status, ['Content-Type' => 'application/json'], json_encode(['code' => $status, 'message' => $message], JSON_UNESCAPED_UNICODE));
 	}
 
-	public function index(Request $request)
-	{
+	public function index(Request $request) : Response {
 		$accountInfo = $request->accountInfo;
 		$orders = Db::table('mail')
 			->where('mail_custid', $accountInfo->account_id)
@@ -53,8 +54,7 @@ class Mail
 		return json($return);
 	}
 
-	public function view(Request $request, $id)
-	{
+	public function view(Request $request, $id) : Response {
 		$accountInfo = $request->accountInfo;
 		if (!v::intVal()->validate($id))
 			return response('The specified ID was invalid.', 400);
@@ -73,7 +73,7 @@ class Mail
 		return json($return);
 	}
 
-    public function send(Request $request) {
+    public function send(Request $request) : Response {
         $accountInfo = $request->accountInfo;
         $id = $request->post('id');
         if (!is_null($id)) {
@@ -126,14 +126,13 @@ class Mail
                 return json(['status' => 'error', 'text' => $mailer->ErrorInfo]);
             }
             return json(['status' =>'ok', 'text' => 'ok']);
-        } catch (PHPMailer\PHPMailer\Exception $e) {
+        } catch (Exception $e) {
             return json(['status' => 'error', 'text' => $mailer->ErrorInfo]);
         }
-
     }
 
 
-    public function advsend(Request $request) {
+    public function advsend(Request $request) : Response {
         $accountInfo = $request->accountInfo;
         $data = json_decode($request->rawBody(), true);
         $id = isset($data['id']) ? $data['id'] : null;
@@ -211,7 +210,7 @@ class Mail
                 return json(['status' => 'error', 'text' => $mailer->ErrorInfo]);
             }
             return json(['status' =>'ok', 'text' => 'ok']);
-        } catch (PHPMailer\PHPMailer\Exception $e) {
+        } catch (Exception $e) {
             return json(['status' => 'error', 'text' => $mailer->ErrorInfo]);
         }
     }

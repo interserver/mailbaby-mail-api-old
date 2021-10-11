@@ -129,7 +129,7 @@ function redirect($location, $status = 302, $headers = [])
  * @param $template
  * @param array $vars
  * @param null $app
- * @return string
+ * @return Response
  */
 function view($template, $vars = [], $app = null)
 {
@@ -281,6 +281,10 @@ function worker_bind($worker, $class) {
  * @return int
  */
 function cpu_count() {
+    // Windows does not support the number of processes setting.
+    if (\DIRECTORY_SEPARATOR === '\\') {
+        return 1;
+    }
     if (strtolower(PHP_OS) === 'darwin') {
         $count = shell_exec('sysctl -n machdep.cpu.core_count');
     } else {

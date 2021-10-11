@@ -27,10 +27,10 @@
 	"php": ">=7.2",
 	"workerman/webman-framework": "^1.0",
 	"monolog/monolog": "^2.0",
-	"vlucas/phpdotenv": "^5.1.0",
+	"vlucas/phpdotenv": ">=4.1,<6.0",
 	"illuminate/database": "^8.0",
 	"respect/validation": "^2.2",
-	"phpmailer/phpmailer": "^6.3"
+	"phpmailer/phpmailer": "^6.5"
   },
   "suggest": {
 	"ext-event": "For better performance. "

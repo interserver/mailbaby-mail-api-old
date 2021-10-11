@@ -2,8 +2,8 @@
 namespace app\middleware;
 
 use Webman\MiddlewareInterface;
-use Webman\Http\Response;
-use Webman\Http\Request;
+use support\Response;
+use support\Request;
 use support\Db;
 //use support\bootstrap\Log;
 
@@ -12,17 +12,23 @@ class AuthCheck implements MiddlewareInterface
 
 	/**
 	* returns a json error response
-	* 
+	*
 	* @param string $message the error details
 	* @param int $status the error code
 	* @return \support\Response
 	*/
-	public function jsonErrorResponse($message, $status = 200) {
-		return support\Response($status, ['Content-Type' => 'application/json'], json_encode(['code' => $status, 'message' => $message], JSON_UNESCAPED_UNICODE));
+	public function jsonErrorResponse($message, $status = 200) : Response {
+		return Response($status, ['Content-Type' => 'application/json'], json_encode(['code' => $status, 'message' => $message], JSON_UNESCAPED_UNICODE));
 	}
 
-	public function process(Request $request, callable $next) : Response
-	{
+    /**
+    * process authentication
+    *
+    * @param \support\Request $request
+    * @param callable $next
+    * @return \support\Response
+    */
+	public function process(Request $request, callable $next) : Response {
 		$GLOBALS['accountInfo'] = null;
 		$key = $request->header('x-api-key');
 		//$login = $request->header('x-api-login');
@@ -44,7 +50,7 @@ class AuthCheck implements MiddlewareInterface
 				->first();
 		if (is_null($accountInfo))
 			return $this->jsonErrorResponse('API key is missing or invalid', 401);
-		$request->accountInfo = $accountInfo;			
+		$request->accountInfo = $accountInfo;
 		//Log::info('auth check response:'.var_export($accountInfo,true));
 		return $next($request);
 	}
