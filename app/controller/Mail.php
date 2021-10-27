@@ -32,7 +32,7 @@ class Mail
 	* @return \support\Response
 	*/
 	public function jsonErrorResponse($message, $status = 200) : Response {
-		return Response($status, ['Content-Type' => 'application/json'], json_encode(['code' => $status, 'message' => $message], JSON_UNESCAPED_UNICODE));
+		return Response($status, ['Content-Type' => 'application/json'], ['code' => $status, 'message' => $message]);
 	}
 
 	public function index(Request $request) : Response {
