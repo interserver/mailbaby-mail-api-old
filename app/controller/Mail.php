@@ -78,21 +78,21 @@ class Mail
         $id = $request->post('id');
         if (!is_null($id)) {
             if (!v::intVal()->validate($id))
-            	return new Response(400, ['Content-Type' => 'application/json'], ['code' => 400, 'message' => 'The specified ID was invalid.']);
+                return new Response(400, ['Content-Type' => 'application/json'], json_encode(['code' => 400, 'message' => 'The specified ID was invalid.'], JSON_UNESCAPED_UNICODE));
             $order = Db::table('mail')
                 ->where('mail_custid', $accountInfo->account_id)
                 ->where('mail_id', $id)
                 ->where('mail_status', 'active')
                 ->first();
             if (is_null($order))
-                return new Response(404, ['Content-Type' => 'application/json'], ['code' => 404, 'message' => 'The mail order with the specified ID was not found or not active.']);
+                return new Response(404, ['Content-Type' => 'application/json'], json_encode(['code' => 404, 'message' => 'The mail order with the specified ID was not found or not active.'], JSON_UNESCAPED_UNICODE));
         } else {
             $order = Db::table('mail')
                 ->where('mail_custid', $accountInfo->account_id)
                 ->where('mail_status', 'active')
                 ->first();
             if (is_null($order))
-                return new Response(404, ['Content-Type' => 'application/json'], ['code' => 404, 'message' => 'No active mail order was found.']);
+                return new Response(404, ['Content-Type' => 'application/json'], json_encode(['code' => 404, 'message' => 'No active mail order was found.'], JSON_UNESCAPED_UNICODE));
             $id = $order->mail_id;
         }
         $sent = false;
@@ -139,26 +139,26 @@ class Mail
         $id = $request->post('id');
         if (!is_null($id)) {
             if (!v::intVal()->validate($id))
-                return new Response(400, ['Content-Type' => 'application/json'], ['code' => 400, 'message' => 'The specified ID was invalid.']);
+                return new Response(400, ['Content-Type' => 'application/json'], json_encode(['code' => 400, 'message' => 'The specified ID was invalid.'], JSON_UNESCAPED_UNICODE));
             $order = Db::table('mail')
                 ->where('mail_custid', $accountInfo->account_id)
                 ->where('mail_id', $id)
                 ->where('mail_status', 'active')
                 ->first();
             if (is_null($order))
-                return new Response(404, ['Content-Type' => 'application/json'], ['code' => 404, 'message' => 'The mail order with the specified ID was not found or not active.']);
+                return new Response(404, ['Content-Type' => 'application/json'], json_encode(['code' => 404, 'message' => 'The mail order with the specified ID was not found or not active.'], JSON_UNESCAPED_UNICODE));
         } else {
             $order = Db::table('mail')
                 ->where('mail_custid', $accountInfo->account_id)
                 ->where('mail_status', 'active')
                 ->first();
             if (is_null($order))
-                return new Response(404, ['Content-Type' => 'application/json'], ['code' => 404, 'message' => 'No active mail order was found.']);
+                return new Response(404, ['Content-Type' => 'application/json'], json_encode(['code' => 404, 'message' => 'No active mail order was found.'], JSON_UNESCAPED_UNICODE));
             $id = $order->mail_id;
         }
         foreach (['from', 'to', 'subject', 'body'] as $field)
             if (!isset($data[$field]))
-                return new Response(404, ['Content-Type' => 'application/json'], ['code' => 404, 'message' => 'Missing the required "'.$field.'" field']);
+                return new Response(404, ['Content-Type' => 'application/json'], json_encode(['code' => 404, 'message' => 'Missing the required "'.$field.'" field'], JSON_UNESCAPED_UNICODE));
 
 
         $sent = false;
@@ -186,7 +186,7 @@ class Mail
                             }
                         }
                     } else {
-                        return new Response(404, ['Content-Type' => 'application/json'], ['code' => 404, 'message' => 'The "'.strtolower($type).'" field is supposed to be an array.']);
+                        return new Response(404, ['Content-Type' => 'application/json'], json_encode(['code' => 404, 'message' => 'The "'.strtolower($type).'" field is supposed to be an array.'], JSON_UNESCAPED_UNICODE));
                     }
                 }
             }
@@ -201,7 +201,7 @@ class Mail
                         }
                     }
                 } else {
-                    return new Response(404, ['Content-Type' => 'application/json'], ['code' => 404, 'message' => 'The "attachments" field is supposed to be an array.']);
+                    return new Response(404, ['Content-Type' => 'application/json'], json_encode(['code' => 404, 'message' => 'The "attachments" field is supposed to be an array.'], JSON_UNESCAPED_UNICODE));
                 }
             }
             $mailer->Body = $data['body'];
@@ -220,21 +220,21 @@ class Mail
 		$id = $request->post('id');
 		if (!is_null($id)) {
 			if (!v::intVal()->validate($id))
-				return new Response(400, ['Content-Type' => 'application/json'], ['code' => 400, 'message' => 'The specified ID was invalid.']);
+				return new Response(400, ['Content-Type' => 'application/json'], json_encode(['code' => 400, 'message' => 'The specified ID was invalid.'], JSON_UNESCAPED_UNICODE));
 			$order = Db::table('mail')
 				->where('mail_custid', $accountInfo->account_id)
 				->where('mail_id', $id)
 				->where('mail_status', 'active')
 				->first();
 			if (is_null($order))
-				return new Response(404, ['Content-Type' => 'application/json'], ['code' => 404, 'message' => 'The mail order with the specified ID was not found or not active.']);
+				return new Response(404, ['Content-Type' => 'application/json'], json_encode(['code' => 404, 'message' => 'The mail order with the specified ID was not found or not active.'], JSON_UNESCAPED_UNICODE));
 		} else {
 			$order = Db::table('mail')
 				->where('mail_custid', $accountInfo->account_id)
 				->where('mail_status', 'active')
 				->first();
 			if (is_null($order))
-				return new Response(404, ['Content-Type' => 'application/json'], ['code' => 404, 'message' => 'No active mail order was found.']);
+				return new Response(404, ['Content-Type' => 'application/json'], json_encode(['code' => 404, 'message' => 'No active mail order was found.'], JSON_UNESCAPED_UNICODE));
 			$id = $order->mail_id;
 		}
 	}
