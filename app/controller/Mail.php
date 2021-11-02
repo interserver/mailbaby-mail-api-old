@@ -134,9 +134,18 @@ class Mail
 
     public function advsend(Request $request) : Response {
         $accountInfo = $request->accountInfo;
-        $data = json_decode($request->rawBody(), true);
+        if ($request->header('content-type') == 'application/x-www-form-urlencoded') {
+        	$data = [];
+            foreach (['subject', 'body', 'from', 'to', 'id', 'replyto', 'cc', 'bcc'] as $var) {
+				$value = $request->post($var);
+				if (!is_null($value)) {
+					$data[$var] = $value;
+				}
+            }
+		} else {
+			$data = json_decode($request->rawBody(), true);
+        }
         $id = isset($data['id']) ? $data['id'] : null;
-        $id = $request->post('id');
         if (!is_null($id)) {
             if (!v::intVal()->validate($id))
                 return new Response(400, ['Content-Type' => 'application/json'], json_encode(['code' => 400, 'message' => 'The specified ID was invalid.'], JSON_UNESCAPED_UNICODE));
