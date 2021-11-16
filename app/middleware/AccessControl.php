@@ -9,8 +9,7 @@ class AccessControl implements MiddlewareInterface
 {
 	public function process(Request $request, callable $next) : Response
 	{
-		//$response = $request->method() == 'OPTIONS' ? response('') : $next($request);
-		$response = $next($request);
+		$response = $request->method() == 'OPTIONS' ? response('') : $next($request);
 		$response->withHeaders([
 			'Access-Control-Allow-Origin' => '*',
 			'Access-Control-Allow-Methods' => '*',
