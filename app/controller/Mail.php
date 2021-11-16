@@ -74,6 +74,8 @@ class Mail
 	}
 
     public function send(Request $request) : Response {
+    	if ($request->method() != 'POST')
+    		return new Response(400, ['Content-Type' => 'application/json'], json_encode(['code' => 400, 'message' => 'This should be a POST request.'], JSON_UNESCAPED_UNICODE));
         $accountInfo = $request->accountInfo;
         $id = $request->post('id');
         if (!is_null($id)) {
@@ -133,6 +135,8 @@ class Mail
 
 
     public function advsend(Request $request) : Response {
+    	if ($request->method() != 'POST')
+    		return new Response(400, ['Content-Type' => 'application/json'], json_encode(['code' => 400, 'message' => 'This should be a POST request.'], JSON_UNESCAPED_UNICODE));
         $accountInfo = $request->accountInfo;
         if ($request->header('content-type') == 'application/x-www-form-urlencoded') {
         	$data = [];
@@ -225,6 +229,8 @@ class Mail
     }
 
 	public function log(Request $request) {
+    	if ($request->method() != 'POST')
+    		return new Response(400, ['Content-Type' => 'application/json'], json_encode(['code' => 400, 'message' => 'This should be a POST request.'], JSON_UNESCAPED_UNICODE));
 		$accountInfo = $request->accountInfo;
 		$id = $request->post('id');
 		if (!is_null($id)) {

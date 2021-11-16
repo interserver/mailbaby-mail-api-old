@@ -22,10 +22,10 @@ Route::options('/ping', function($request) {
 });
 
 Route::group('/mail', function() {
-	Route::get('', [app\controller\Mail::class, 'index']);
-    Route::post('/send', [app\controller\Mail::class, 'send']);
-    Route::post('/advsend', [app\controller\Mail::class, 'advsend']);
-	Route::post('/log', [app\controller\Mail::class, 'log']);
+	Route::any('', [app\controller\Mail::class, 'index']);
+    Route::any('/send', [app\controller\Mail::class, 'send']);
+    Route::any('/advsend', [app\controller\Mail::class, 'advsend']);
+	Route::any('/log', [app\controller\Mail::class, 'log']);
 
 })->middleware([
 	app\middleware\AuthCheck::class
