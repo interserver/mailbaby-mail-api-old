@@ -248,8 +248,19 @@ class Mail
 				->first();
 			if (is_null($order))
 				return new Response(404, ['Content-Type' => 'application/json'], json_encode(['code' => 404, 'message' => 'No active mail order was found.'], JSON_UNESCAPED_UNICODE));
-			$id = $order->mail_id;
 		}
+		$id = $order->mail_id;
+   		$orders = Db::connection('zonemta')->table('mail_messagestore')
+			->where('mail_messagestore.user', 'mb'.$id)
+			->offset(0)
+			->limit(50)
+			->get();
+		$return = [];
+		foreach ($orders as $order) {
+			$row = $order->all();
+			$return[] = $row;
+		}
+		return json($return);
 	}
 
 	public function viewtest(Request $request)
