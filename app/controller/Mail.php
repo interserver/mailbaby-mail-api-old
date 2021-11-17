@@ -229,8 +229,6 @@ class Mail
     }
 
 	public function log(Request $request) {
-    	if ($request->method() != 'POST')
-    		return new Response(400, ['Content-Type' => 'application/json'], json_encode(['code' => 400, 'message' => 'This should be a POST request.'], JSON_UNESCAPED_UNICODE));
 		$accountInfo = $request->accountInfo;
 		$id = $request->post('id');
 		if (!is_null($id)) {
