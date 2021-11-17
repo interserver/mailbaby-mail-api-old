@@ -149,7 +149,7 @@ paths:
             type: integer
             format: int64
         - in: query
-          name: searchString
+          name: search
           description: pass an optional search string for looking up inventory
           required: false
           schema:
