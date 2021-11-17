@@ -234,6 +234,10 @@ class Mail
 		$limit = $request->get('limit', 100);
 		$skip = $request->get('skip', 0);
 		$search = $request->get('search', '');
+        if (!v::intVal()->validate($skip))
+            return new Response(400, ['Content-Type' => 'application/json'], json_encode(['code' => 400, 'message' => 'The specified skip value was invalid.'], JSON_UNESCAPED_UNICODE));
+        if (!v::intVal()->validate($limit))
+            return new Response(400, ['Content-Type' => 'application/json'], json_encode(['code' => 400, 'message' => 'The specified limit value was invalid.'], JSON_UNESCAPED_UNICODE));
 		if (!is_null($id)) {
 			if (!v::intVal()->validate($id))
 				return new Response(400, ['Content-Type' => 'application/json'], json_encode(['code' => 400, 'message' => 'The specified ID was invalid.'], JSON_UNESCAPED_UNICODE));
