@@ -179,9 +179,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/MailLog'
+                $ref: '#/components/schemas/MailLog'
         '400':
           description: bad input parameter
   /ping:
@@ -215,6 +213,26 @@ components:
           type: string
           example: The command completed successfully.
     MailLog:
+      type: object
+      description: Mail log records
+      properties:
+        total:
+          type: integer
+          example: 10234
+          description: total number of mail log entries
+        skip:
+          type: integer
+          example: 0
+          description: number of emails skipped in listing
+        limit:
+          type: integer
+          example: 100
+          description: number of emails to return
+        emails:
+          type: array
+          items:
+            $ref: '#/components/schemas/MailLogEntry'
+    MailLogEntry:
       type: object
       description: An email record
       properties:
