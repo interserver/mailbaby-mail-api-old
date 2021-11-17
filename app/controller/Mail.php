@@ -230,9 +230,10 @@ class Mail
 
 	public function log(Request $request) {
 		$accountInfo = $request->accountInfo;
-		$id = $request->post('id');
-		$limit = 10;
-		$skip = 0;
+		$id = $request->get('id', null);
+		$limit = $request->get('limit', 100);
+		$skip = $request->get('skip', 0);
+		$search = $request->get('search', '');
 		if (!is_null($id)) {
 			if (!v::intVal()->validate($id))
 				return new Response(400, ['Content-Type' => 'application/json'], json_encode(['code' => 400, 'message' => 'The specified ID was invalid.'], JSON_UNESCAPED_UNICODE));

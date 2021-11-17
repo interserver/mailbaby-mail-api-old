@@ -29,6 +29,7 @@ The Chinese documentation is easily readable Using either the auto translate in 
 
 ## Documentation
 
+* [Illuminate Database Docs](https://laravel.com/docs/8.x/queries)
 * [StopLight Elements](https://github.com/stoplightio/elements) OpenAPI Documentor
 * [MailBaby Swagger-UI](https://api.mailbaby.net/doc/index.html)
 * [MailBaby generator HTML2  Docs](https://mystage.interserver.net/html2/)
