@@ -215,178 +215,175 @@ components:
           type: string
           example: The command completed successfully.
     MailLog:
-      type: array
-      description: A list of emails
-      items:
-        type: object
-        description: An email record
-        properties:
-          _id:
-            type: integer
-            example: 103172
-            description: internal db id 
-          id:
-            type: string
-            example: 17c7eda538e0005d03
-            description: mail id 
-          from:
-            type: string
-            example: person@mysite.com
-            description: from address 
-          to:
-            type: string
-            example: client@isp.com
-            description: to address 
-          subject:
-            type: string
-            example: sell 0.005 shares
-            description: email subject 
-          messageId:
-            type: string
-            example: <vmiLEebsuCbSpUxD7oN3REpaN4VbN6BrdCAbNKIrdAo@relay0.mailbaby.net>
-            description: message id 
-          created:
-            type: string
-            example: 2021-10-14 08:50:10
-            description: creation date 
-          time:
-            type: integer
-            example: 1634215809
-            description: creation timestamp 
-          user:
-            type: string
-            example: mb5658
-            description: user account 
-          transtype:
-            type: string
-            example: ESMTPSA
-            description: transaction type 
-          transhost:
-            type: string
-            example: relay0.mailbaby.net
-            description: transaction host 
-          originhost:
-            type: string
-            example: 199.231.189.154
-            description: origin host 
-          origin:
-            type: string
-            example: 199.231.189.154
-            description: origin ip 
-          interface:
-            type: string
-            example: feeder
-            description: interface name 
-          date:
-            type: string
-            example: Thu, 14 Oct 2021 08:50:09 -0400
-            description: date processed 
-          sendingZone:
-            type: string
-            example: interserver
-            description: sending zone 
-          bodySize:
-            type: integer
-            example: 63
-            description: email body size in bytes 
-          sourceMd5:
-            type: string
-            example: 1d7058e6a30369f200b0c34fab2fac92
-            description: md5 sum of the email 
-          seq:
-            type: integer
-            example: 001
-            description: delivery sequency 
-          domain:
-            type: string
-            example: interserver.net
-            description: to address domain 
-          recipient:
-            type: string
-            example: client@isp.com
-            description: email receiver address 
-          locked:
-            type: integer
-            example: 1
-            description: locked status 
-          lockTime:
-            type: integer
-            example: 1634215818533
-            description: lock timestamp 
-          assigned:
-            type: string
-            example: relay1
-            description: assigned server 
-          queued:
-            type: string
-            example: 2021-10-14T12:50:15.487Z
-            description: queued timestamp 
-          _lock:
-            type: string
-            example: lock 17c7eda538e0005d03 001
-            description: lock id 
-          logger:
-            type: string
-            example: 
-            description: logger 
-          mxPort:
-            type: integer
-            example: 25
-            description: mx port number 
-          connectionKey:
-            type: string
-            example: 206.72.200.46:interserver.net:25
-            description: connection key 
-          mxHostname:
-            type: string
-            example: mx.j.is.cc
-            description: mx hostname 
-          sentBodyHash:
-            type: string
-            example: 1d7058e6a30369f200b0c34fab2fac92
-            description: body hash 
-          sentBodySize:
-            type: integer
-            example: 63
-            description: sent body size in bytes 
-          md5Match:
-            type: integer
-            example: 1
-            description: md5 checksum matching result 
-        required:
-          - _id
-          - id
-          - from
-          - to
-          - subject
-          - messageId
-          - created
-          - time
-          - user
-          - transtype
-          - transhost
-          - originhost
-          - origin
-          - interface
-          - date
-          - sendingZone
-          - bodySize
-          - sourceMd5
-          - seq
-          - domain
-          - recipient
-          - locked
-          - lockTime
-          - assigned
-          - queued
-          - _lock
-          - logger
-          - mxPort
-          - connectionKey
-          - mxHostname
-          - sentBodyHash
-          - sentBodySize
-          - md5Match
+      type: object
+      description: An email record
+      properties:
+        _id:
+          type: integer
+          example: 103172
+          description: internal db id 
+        id:
+          type: string
+          example: 17c7eda538e0005d03
+          description: mail id 
+        from:
+          type: string
+          example: person@mysite.com
+          description: from address 
+        to:
+          type: string
+          example: client@isp.com
+          description: to address 
+        subject:
+          type: string
+          example: sell 0.005 shares
+          description: email subject 
+        messageId:
+          type: string
+          example: <vmiLEebsuCbSpUxD7oN3REpaN4VbN6BrdCAbNKIrdAo@relay0.mailbaby.net>
+          description: message id 
+        created:
+          type: string
+          example: 2021-10-14 08:50:10
+          description: creation date 
+        time:
+          type: integer
+          example: 1634215809
+          description: creation timestamp 
+        user:
+          type: string
+          example: mb5658
+          description: user account 
+        transtype:
+          type: string
+          example: ESMTPSA
+          description: transaction type 
+        transhost:
+          type: string
+          example: relay0.mailbaby.net
+          description: transaction host 
+        originhost:
+          type: string
+          example: 199.231.189.154
+          description: origin host 
+        origin:
+          type: string
+          example: 199.231.189.154
+          description: origin ip 
+        interface:
+          type: string
+          example: feeder
+          description: interface name 
+        date:
+          type: string
+          example: Thu, 14 Oct 2021 08:50:09 -0400
+          description: date processed 
+        sendingZone:
+          type: string
+          example: interserver
+          description: sending zone 
+        bodySize:
+          type: integer
+          example: 63
+          description: email body size in bytes 
+        sourceMd5:
+          type: string
+          example: 1d7058e6a30369f200b0c34fab2fac92
+          description: md5 sum of the email 
+        seq:
+          type: integer
+          example: 001
+          description: delivery sequency 
+        domain:
+          type: string
+          example: interserver.net
+          description: to address domain 
+        recipient:
+          type: string
+          example: client@isp.com
+          description: email receiver address 
+        locked:
+          type: integer
+          example: 1
+          description: locked status 
+        lockTime:
+          type: integer
+          example: 1634215818533
+          description: lock timestamp 
+        assigned:
+          type: string
+          example: relay1
+          description: assigned server 
+        queued:
+          type: string
+          example: 2021-10-14T12:50:15.487Z
+          description: queued timestamp 
+        _lock:
+          type: string
+          example: lock 17c7eda538e0005d03 001
+          description: lock id 
+        logger:
+          type: string
+          example: 
+          description: logger 
+        mxPort:
+          type: integer
+          example: 25
+          description: mx port number 
+        connectionKey:
+          type: string
+          example: 206.72.200.46:interserver.net:25
+          description: connection key 
+        mxHostname:
+          type: string
+          example: mx.j.is.cc
+          description: mx hostname 
+        sentBodyHash:
+          type: string
+          example: 1d7058e6a30369f200b0c34fab2fac92
+          description: body hash 
+        sentBodySize:
+          type: integer
+          example: 63
+          description: sent body size in bytes 
+        md5Match:
+          type: integer
+          example: 1
+          description: md5 checksum matching result 
+      required:
+        - _id
+        - id
+        - from
+        - to
+        - subject
+        - messageId
+        - created
+        - time
+        - user
+        - transtype
+        - transhost
+        - originhost
+        - origin
+        - interface
+        - date
+        - sendingZone
+        - bodySize
+        - sourceMd5
+        - seq
+        - domain
+        - recipient
+        - locked
+        - lockTime
+        - assigned
+        - queued
+        - _lock
+        - logger
+        - mxPort
+        - connectionKey
+        - mxHostname
+        - sentBodyHash
+        - sentBodySize
+        - md5Match
     SendMail:
       type: object
       description: Details for an Email
