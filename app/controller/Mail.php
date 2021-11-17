@@ -250,10 +250,15 @@ class Mail
 				return new Response(404, ['Content-Type' => 'application/json'], json_encode(['code' => 404, 'message' => 'No active mail order was found.'], JSON_UNESCAPED_UNICODE));
 		}
 		$id = $order->mail_id;
-   		$orders = Db::connection('zonemta')->table('mail_messagestore')
+   		$orders = Db::connection('zonemta')
+   			->table('mail_messagestore')
+   			->leftJoin('mail_messageheaders', 'mail_messagestore.id', '=', 'mail_messageheaders.id')
+   			->leftJoin('mail_senderdelivered', 'mail_messagestore.id', '=', 'mail_senderdelivered.id')
+   			->leftJoin('mail_senderdelivered_extra', 'mail_senderdelivered._id', '=', 'mail_senderdelivered_extra.senderdelivered_id')
+   			->select('mail_messagestore._id', 'mail_messagestore.id', 'mail_messagestore.from', 'mail_messagestore.to', 'mail_messageheaders.subject', 'mail_messageheaders.messageId', 'mail_messageheaders.created', 'mail_messageheaders.time', 'mail_messageheaders.user', 'mail_messageheaders.transtype', 'mail_messageheaders.transhost', 'mail_messageheaders.originhost', 'mail_messageheaders.origin', 'mail_messageheaders.interface', 'mail_messageheaders.date', 'mail_senderdelivered.sendingZone', 'mail_senderdelivered.bodySize', 'mail_senderdelivered.sourceMd5', 'mail_senderdelivered.seq', 'mail_senderdelivered.domain', 'mail_senderdelivered.recipient', 'mail_senderdelivered.locked', 'mail_senderdelivered.lockTime', 'mail_senderdelivered.assigned', 'mail_senderdelivered.queued', 'mail_senderdelivered._lock', 'mail_senderdelivered.logger', 'mail_senderdelivered.mxPort', 'mail_senderdelivered.connectionKey', 'mail_senderdelivered.mxHostname', 'mail_senderdelivered.sentBodyHash', 'mail_senderdelivered.sentBodySize', 'mail_senderdelivered.md5Match', 'mail_senderdelivered.fbl', 'mail_senderdelivered_extra.doc')
 			->where('mail_messagestore.user', 'mb'.$id)
 			->offset(0)
-			->limit(50)
+			->limit(10)
 			->get();
 		/*$return = [];
 		foreach ($orders as $order) {
