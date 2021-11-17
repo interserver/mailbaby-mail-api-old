@@ -232,6 +232,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MailLogEntry'
+      required: 
+        - total
+        - skip
+        - limit
+        - emails
     MailLogEntry:
       type: object
       description: An email record
