@@ -255,11 +255,13 @@ class Mail
 			->offset(0)
 			->limit(50)
 			->get();
-		$return = [];
+		/*$return = [];
 		foreach ($orders as $order) {
 			$row = $order->all();
 			$return[] = $row;
 		}
+		*/
+		$return = $orders->all();
 		return json($return);
 	}
 
