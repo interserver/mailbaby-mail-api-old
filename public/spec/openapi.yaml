@@ -267,7 +267,7 @@ components:
             description: transaction host 
           originhost:
             type: string
-            example: [199.231.189.154]
+            example: 199.231.189.154
             description: origin host 
           origin:
             type: string
