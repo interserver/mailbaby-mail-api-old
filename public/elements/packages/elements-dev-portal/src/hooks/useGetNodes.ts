@@ -2,21 +2,33 @@ import * as React from 'react';
 import { useQuery } from 'react-query';
 import { useDebounce } from 'use-debounce';
 
-import { PlatformUrlContext } from '../components/DevPortalProvider';
+import { PlatformContext } from '../components/DevPortalProvider';
+import { devPortalCacheKeys } from '../consts';
 import { getNodes } from '../handlers/getNodes';
 
 export function useGetNodes({
   search,
   workspaceId,
   projectIds,
+  branch,
+  pause,
 }: {
   search: string;
-  workspaceId: string;
+  workspaceId?: string;
   projectIds?: string[];
+  branch?: string;
+  pause?: boolean;
 }) {
-  const platformUrl = React.useContext(PlatformUrlContext);
+  const { platformUrl, platformAuthToken } = React.useContext(PlatformContext);
   const [debounceSearch] = useDebounce(search, 500);
-  return useQuery(['workspaceNodes', workspaceId, projectIds, debounceSearch, platformUrl], () =>
-    getNodes({ workspaceId, projectIds, search: debounceSearch, platformUrl }),
+  return useQuery(
+    [
+      ...devPortalCacheKeys.searchNodes({ projectIds, branchSlug: branch, workspaceId, search: debounceSearch }),
+      platformUrl,
+      platformAuthToken,
+    ],
+    () =>
+      getNodes({ workspaceId, projectIds, branchSlug: branch, search: debounceSearch, platformUrl, platformAuthToken }),
+    { enabled: !pause, keepPreviousData: true },
   );
 }

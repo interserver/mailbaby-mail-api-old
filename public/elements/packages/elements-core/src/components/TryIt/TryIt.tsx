@@ -1,42 +1,45 @@
-import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { safeParse, safeStringify } from '@stoplight/json';
-import { Box, Button, Flex, Panel, Text, useThemeIsDark } from '@stoplight/mosaic';
-import { CodeViewer } from '@stoplight/mosaic-code-viewer';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { Box, Button, HStack, Icon, Panel, useThemeIsDark } from '@stoplight/mosaic';
 import { IHttpOperation } from '@stoplight/types';
 import { Request as HarRequest } from 'har-format';
+import { useAtom } from 'jotai';
 import * as React from 'react';
 
-import { HttpCodeDescriptions, HttpMethodColors } from '../../constants';
-import { getHttpCodeColor } from '../../utils/http';
-import { TryItAuth } from './Auth';
-import { usePersistedSecuritySchemeWithValues } from './authentication-utils';
+import { HttpMethodColors } from '../../constants';
+import { getServersToDisplay, IServer } from '../../utils/http-spec/IServer';
+import { RequestSamples } from '../RequestSamples';
+import { chosenServerAtom } from '.';
+import { TryItAuth } from './Auth/Auth';
+import { usePersistedSecuritySchemeWithValues } from './Auth/authentication-utils';
+import { FormDataBody } from './Body/FormDataBody';
+import { useBodyParameterState } from './Body/request-body-utils';
+import { RequestBody } from './Body/RequestBody';
+import { useTextRequestBodyState } from './Body/useTextRequestBodyState';
 import { buildFetchRequest, buildHarRequest } from './build-request';
-import { FormDataBody } from './FormDataBody';
-import { getMockData } from './mocking-utils';
-import { MockingButton } from './MockingButton';
-import { OperationParameters } from './OperationParameters';
-import { useBodyParameterState } from './request-body-utils';
-import { RequestBody } from './RequestBody';
-import { useMockingOptions } from './useMockingOptions';
-import { useRequestParameters } from './useOperationParameters';
-import { useTextRequestBodyState } from './useTextRequestBodyState';
+import { getMockData } from './Mocking/mocking-utils';
+import { MockingButton } from './Mocking/MockingButton';
+import { useMockingOptions } from './Mocking/useMockingOptions';
+import { OperationParameters } from './Parameters/OperationParameters';
+import { useRequestParameters } from './Parameters/useOperationParameters';
+import {
+  ErrorState,
+  getResponseType,
+  NetworkError,
+  ResponseError,
+  ResponseState,
+  TryItResponse,
+} from './Response/Response';
+import { ServersDropdown } from './Servers/ServersDropdown';
 
 export interface TryItProps {
   httpOperation: IHttpOperation;
-  /**
-   * Presents an option for the user to redirect traffic to a prism-based mock server, such as Stoplight Platform's Hosted Mocking feature.
-   *
-   * When using this feature, make sure to specify the base URL of the mock server using the `mockUrl` prop.
-   * @default false
-   */
-  showMocking?: boolean;
+
   /**
    * The base URL of the prism mock server to redirect traffic to.
    *
    * While non-prism based mocks may work to some limited extent, they might not understand the Prefer header as prism does.
    *
-   * Only applies when `showMocking` is enabled
+   * When a mockUrl is provided, a button to enable mocking via TryIt will be shown
    */
   mockUrl?: string;
 
@@ -46,59 +49,115 @@ export interface TryItProps {
    */
   onRequestChange?: (currentRequest: HarRequest) => void;
   requestBodyIndex?: number;
-}
+  /**
+   * True when TryIt is embedded in Markdown doc
+   */
+  embeddedInMd?: boolean;
 
-interface ResponseState {
-  status: number;
-  bodyText: string;
-}
-
-interface ErrorState {
-  error: Error;
+  /**
+   * Fetch credentials policy for TryIt component
+   * For more information: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
+   * @default "omit"
+   */
+  tryItCredentialsPolicy?: 'omit' | 'include' | 'same-origin';
+  corsProxy?: string;
 }
 
 /**
  * Displays the TryIt component for a given IHttpOperation.
  * Relies on jotai, needs to be wrapped in a PersistenceContextProvider
  */
+
+const defaultServers: IServer[] = [];
+
 export const TryIt: React.FC<TryItProps> = ({
   httpOperation,
-  showMocking,
   mockUrl,
   onRequestChange,
   requestBodyIndex,
+  embeddedInMd = false,
+  tryItCredentialsPolicy,
+  corsProxy,
 }) => {
+  TryIt.displayName = 'TryIt';
   const isDark = useThemeIsDark();
 
   const [response, setResponse] = React.useState<ResponseState | ErrorState | undefined>();
+  const [requestData, setRequestData] = React.useState<HarRequest | undefined>();
+
   const [loading, setLoading] = React.useState<boolean>(false);
+  const [validateParameters, setValidateParameters] = React.useState<boolean>(false);
 
   const mediaTypeContent = httpOperation.request?.body?.contents?.[requestBodyIndex ?? 0];
 
   const { allParameters, updateParameterValue, parameterValuesWithDefaults } = useRequestParameters(httpOperation);
   const [mockingOptions, setMockingOptions] = useMockingOptions();
 
-  const [bodyParameterValues, setBodyParameterValues, formDataState] = useBodyParameterState(mediaTypeContent);
+  const [bodyParameterValues, setBodyParameterValues, isAllowedEmptyValues, setAllowedEmptyValues, formDataState] =
+    useBodyParameterState(mediaTypeContent);
 
   const [textRequestBody, setTextRequestBody] = useTextRequestBodyState(mediaTypeContent);
 
   const [operationAuthValue, setOperationAuthValue] = usePersistedSecuritySchemeWithValues();
 
+  const servers = React.useMemo(() => {
+    const toDisplay = getServersToDisplay(httpOperation.servers || defaultServers, mockUrl);
+
+    return toDisplay;
+  }, [httpOperation.servers, mockUrl]);
+  const firstServer = servers[0] || null;
+  const [chosenServer, setChosenServer] = useAtom(chosenServerAtom);
+  const isMockingEnabled = mockUrl && chosenServer?.url === mockUrl;
+
+  const hasRequiredButEmptyParameters = allParameters.some(
+    parameter => parameter.required && !parameterValuesWithDefaults[parameter.name],
+  );
+
+  const getValues = () =>
+    Object.keys(bodyParameterValues)
+      .filter(param => !isAllowedEmptyValues[param] ?? true)
+      .reduce((previousValue, currentValue) => {
+        previousValue[currentValue] = bodyParameterValues[currentValue];
+        return previousValue;
+      }, {});
+
   React.useEffect(() => {
-    let isActive = true;
-    if (onRequestChange) {
+    const currentUrl = chosenServer?.url;
+
+    // simple attempt to preserve / sync up active server if the URLs are the same between re-renders / navigation
+    const exists = currentUrl && servers.find(s => s.url === currentUrl);
+    if (!exists) {
+      setChosenServer(firstServer);
+    } else if (exists !== chosenServer) {
+      setChosenServer(exists);
+    }
+  }, [servers, firstServer, chosenServer, setChosenServer]);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    if (onRequestChange || embeddedInMd) {
       buildHarRequest({
         mediaTypeContent,
         parameterValues: parameterValuesWithDefaults,
         httpOperation,
-        bodyInput: formDataState.isFormDataBody ? bodyParameterValues : textRequestBody,
+        bodyInput: formDataState.isFormDataBody ? getValues() : textRequestBody,
         auth: operationAuthValue,
+        ...(isMockingEnabled && { mockData: getMockData(mockUrl, httpOperation, mockingOptions) }),
+        chosenServer,
+        corsProxy,
       }).then(request => {
-        if (isActive) onRequestChange(request);
+        if (isMounted) {
+          if (onRequestChange) {
+            onRequestChange(request);
+          }
+          if (embeddedInMd) {
+            setRequestData(request);
+          }
+        }
       });
     }
     return () => {
-      isActive = false;
+      isMounted = false;
     };
     // disabling because we don't want to react on `onRequestChange` change
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -107,150 +166,151 @@ export const TryIt: React.FC<TryItProps> = ({
     parameterValuesWithDefaults,
     formDataState.isFormDataBody,
     bodyParameterValues,
+    isAllowedEmptyValues,
     textRequestBody,
     operationAuthValue,
+    mockingOptions,
+    chosenServer,
+    corsProxy,
+    embeddedInMd,
   ]);
 
-  const handleClick = async () => {
+  const handleSendRequest = async () => {
+    setValidateParameters(true);
+
+    if (hasRequiredButEmptyParameters) return;
+
     try {
       setLoading(true);
-      const mockData = getMockData(mockUrl, httpOperation, mockingOptions);
+      const mockData = isMockingEnabled ? getMockData(mockUrl, httpOperation, mockingOptions) : undefined;
       const request = await buildFetchRequest({
         parameterValues: parameterValuesWithDefaults,
         httpOperation,
         mediaTypeContent,
-        bodyInput: formDataState.isFormDataBody ? bodyParameterValues : textRequestBody,
+        bodyInput: formDataState.isFormDataBody ? getValues() : textRequestBody,
         mockData,
         auth: operationAuthValue,
+        chosenServer,
+        credentials: tryItCredentialsPolicy,
+        corsProxy,
       });
       let response: Response | undefined;
       try {
         response = await fetch(...request);
-      } catch (e) {
+      } catch (e: any) {
         setResponse({ error: new NetworkError(e.message) });
       }
-      response &&
+      if (response) {
+        const contentType = response.headers.get('Content-Type');
+        const type = contentType ? getResponseType(contentType) : undefined;
+
         setResponse({
           status: response.status,
-          bodyText: await response.text(),
+          bodyText: type !== 'image' ? await response.text() : undefined,
+          blob: type === 'image' ? await response.blob() : undefined,
+          contentType,
         });
-    } catch (e) {
+      }
+    } catch (e: any) {
       setResponse({ error: e });
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <Box rounded="lg" overflowY="hidden">
-      <Panel isCollapsible={false} className="p-0 TryItPanel">
-        <Panel.Titlebar bg="canvas-300">
-          <div role="heading" className="sl-font-bold">
-            <Text color={!isDark ? HttpMethodColors[httpOperation.method] : undefined}>
-              {httpOperation.method.toUpperCase()}
-            </Text>
-            <Text ml={2}>{httpOperation.path}</Text>
-          </div>
-        </Panel.Titlebar>
+  const isOnlySendButton =
+    !httpOperation.security?.length && !allParameters.length && !formDataState.isFormDataBody && !mediaTypeContent;
+
+  const tryItPanelContents = (
+    <>
+      {httpOperation.security?.length ? (
         <TryItAuth
           onChange={setOperationAuthValue}
           operationSecurityScheme={httpOperation.security ?? []}
           value={operationAuthValue}
         />
-        {allParameters.length > 0 && (
-          <OperationParameters
-            parameters={allParameters}
-            values={parameterValuesWithDefaults}
-            onChangeValue={updateParameterValue}
-          />
-        )}
-        {formDataState.isFormDataBody ? (
-          <FormDataBody
-            specification={formDataState.bodySpecification}
-            values={bodyParameterValues}
-            onChangeValues={setBodyParameterValues}
-          />
-        ) : mediaTypeContent ? (
-          <RequestBody
-            examples={mediaTypeContent.examples ?? []}
-            requestBody={textRequestBody}
-            onChange={setTextRequestBody}
-          />
-        ) : null}
-        <Panel.Content className="SendButtonHolder">
-          <Flex alignItems="center">
-            <Button appearance="primary" loading={loading} disabled={loading} onPress={handleClick} size="sm">
-              Send Request
-            </Button>
+      ) : null}
 
-            {showMocking && (
-              <MockingButton options={mockingOptions} onOptionsChange={setMockingOptions} operation={httpOperation} />
-            )}
-          </Flex>
-        </Panel.Content>
+      {allParameters.length > 0 && (
+        <OperationParameters
+          parameters={allParameters}
+          values={parameterValuesWithDefaults}
+          onChangeValue={updateParameterValue}
+          validate={validateParameters}
+        />
+      )}
+
+      {formDataState.isFormDataBody ? (
+        <FormDataBody
+          specification={formDataState.bodySpecification}
+          values={bodyParameterValues}
+          onChangeValues={setBodyParameterValues}
+          onChangeParameterAllow={setAllowedEmptyValues}
+          isAllowedEmptyValues={isAllowedEmptyValues}
+        />
+      ) : mediaTypeContent ? (
+        <RequestBody
+          examples={mediaTypeContent.examples ?? []}
+          requestBody={textRequestBody}
+          onChange={setTextRequestBody}
+        />
+      ) : null}
+
+      <Panel.Content className="SendButtonHolder" mt={4} pt={!isOnlySendButton && !embeddedInMd ? 0 : undefined}>
+        <HStack alignItems="center" spacing={2}>
+          <Button appearance="primary" loading={loading} disabled={loading} onPress={handleSendRequest} size="sm">
+            Send API Request
+          </Button>
+
+          {servers.length > 1 && <ServersDropdown servers={servers} />}
+
+          {isMockingEnabled && (
+            <MockingButton options={mockingOptions} onOptionsChange={setMockingOptions} operation={httpOperation} />
+          )}
+        </HStack>
+
+        {validateParameters && hasRequiredButEmptyParameters && (
+          <Box mt={4} color="danger-light" fontSize="sm">
+            <Icon icon={faExclamationTriangle} className="sl-mr-1" />
+            You didn't provide all of the required parameters!
+          </Box>
+        )}
+      </Panel.Content>
+    </>
+  );
+
+  let tryItPanelElem;
+
+  // when TryIt is embedded, we need to show extra context at the top about the method + path
+  if (embeddedInMd) {
+    tryItPanelElem = (
+      <Panel isCollapsible={false} p={0} className="TryItPanel">
+        <Panel.Titlebar bg="canvas-300">
+          <Box fontWeight="bold" color={!isDark ? HttpMethodColors[httpOperation.method] : undefined}>
+            {httpOperation.method.toUpperCase()}
+          </Box>
+          <Box fontWeight="medium" ml={2} textOverflow="truncate" overflowX="hidden">
+            {`${chosenServer?.url || ''}${httpOperation.path}`}
+          </Box>
+        </Panel.Titlebar>
+
+        {tryItPanelContents}
       </Panel>
+    );
+  } else {
+    tryItPanelElem = (
+      <Box className="TryItPanel" bg="canvas-100" rounded="lg">
+        {tryItPanelContents}
+      </Box>
+    );
+  }
+
+  return (
+    <Box rounded="lg" overflowY="hidden">
+      {tryItPanelElem}
+      {requestData && embeddedInMd && <RequestSamples request={requestData} embeddedInMd />}
       {response && !('error' in response) && <TryItResponse response={response} />}
       {response && 'error' in response && <ResponseError state={response} />}
     </Box>
   );
 };
-
-const TryItResponse: React.FC<{ response: ResponseState }> = ({ response }) => (
-  <Panel defaultIsOpen>
-    <Panel.Titlebar>Response</Panel.Titlebar>
-    <Panel.Content>
-      <div>
-        <div className={`mb-3 text-${getHttpCodeColor(response.status)}`}>
-          {`${response.status} ${HttpCodeDescriptions[response.status] ?? ''}`}
-        </div>
-        {response.bodyText ? (
-          <CodeViewer
-            language="json"
-            value={safeStringify(safeParse(response.bodyText), undefined, 2) || response.bodyText}
-          />
-        ) : (
-          <p>
-            <FontAwesomeIcon icon={faExclamationCircle} className="mr-2" />
-            No response body returned
-          </p>
-        )}
-      </div>
-    </Panel.Content>
-  </Panel>
-);
-
-const ResponseError: React.FC<{ state: ErrorState }> = ({ state: { error } }) => (
-  <Panel defaultIsOpen>
-    <Panel.Titlebar>Error</Panel.Titlebar>
-    <Panel.Content>{isNetworkError(error) ? <NetworkErrorMessage /> : <p>{error.message}</p>}</Panel.Content>
-  </Panel>
-);
-
-const NetworkErrorMessage = () => (
-  <>
-    <p className="sl-pb-2">
-      <strong>Network Error occured.</strong>
-    </p>
-
-    <p className="sl-pb-2">1. Double check that your computer is connected to the internet.</p>
-
-    <p className="sl-pb-2">2. Make sure the API is actually running and available under the specified URL.</p>
-
-    <p>
-      3. If you've checked all of the above and still experiencing issues, check if the API supports{' '}
-      <a
-        target="_blank"
-        rel="noopener noreferrer"
-        className="font-semibold text-darken-7 dark:text-gray-6"
-        href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS"
-      >
-        CORS
-      </a>
-      .
-    </p>
-  </>
-);
-
-class NetworkError extends Error {}
-
-const isNetworkError = (error: Error) => error instanceof NetworkError;

@@ -1,48 +1,65 @@
-import { InvertTheme, Panel, Text } from '@stoplight/mosaic';
-import { IServer } from '@stoplight/types';
+import { faCheck, faCopy } from '@fortawesome/free-solid-svg-icons';
+import { Box, Icon, InvertTheme, Panel, Text, Tooltip, useClipboard, VStack } from '@stoplight/mosaic';
 import * as React from 'react';
 
-import { ActiveInfoContext } from '../../../containers/Provider';
+import { MockingContext } from '../../../containers/MockingProvider';
 import { isProperUrl } from '../../../utils/guards';
-import { getServerUrlWithDefaultValues } from '../../../utils/http-spec/IServer';
+import { getServersToDisplay, IServer } from '../../../utils/http-spec/IServer';
 
 interface ServerInfoProps {
-  servers?: IServer[];
+  servers: IServer[];
   mockUrl?: string;
 }
 
 export const ServerInfo: React.FC<ServerInfoProps> = ({ servers, mockUrl }) => {
-  const info = React.useContext(ActiveInfoContext);
-  const productionServer = servers?.[0];
-  const productionUrl = productionServer && getServerUrlWithDefaultValues(productionServer);
+  const mocking = React.useContext(MockingContext);
+  const showMocking = !mocking.hideMocking && mockUrl && isProperUrl(mockUrl);
+  const $mockUrl = showMocking ? mockUrl || mocking.mockUrl : undefined;
+
+  const serversToDisplay = getServersToDisplay(servers, $mockUrl);
+
+  if (!showMocking && serversToDisplay.length === 0) {
+    return null;
+  }
 
   return (
     <InvertTheme>
       <Panel rounded isCollapsible={false} className="BaseURLContent" w="full">
         <Panel.Titlebar whitespace="nowrap">API Base URL</Panel.Titlebar>
-        <div className="overflow-x-auto">
-          <Panel.Content w="max" className="flex flex-col">
-            {productionUrl && isProperUrl(productionUrl) && (
-              <div className="whitespace-nowrap">
-                {info.showMocking && (
-                  <Text pr={2} fontWeight="bold">
-                    Production:
-                  </Text>
-                )}
-                <Text aria-label="production-server">{productionUrl}</Text>
-              </div>
-            )}
-            {info.showMocking && mockUrl && isProperUrl(mockUrl) && (
-              <div className="flex flex-row">
-                <Text fontWeight="bold">Mock Server:</Text>
-                <Text aria-label="mock-server" pl={2}>
-                  {mockUrl}
-                </Text>
-              </div>
-            )}
+        <Box overflowX="auto">
+          <Panel.Content w="full" className="sl-flex sl-flex-col">
+            <VStack spacing={1} divider>
+              {serversToDisplay.map((server, index) => (
+                <ServerUrl {...server} key={index} />
+              ))}
+            </VStack>
           </Panel.Content>
-        </div>
+        </Box>
       </Panel>
     </InvertTheme>
+  );
+};
+
+const ServerUrl = ({ description, url, marginBottom = true }: IServer & { marginBottom?: boolean }) => {
+  const { onCopy, hasCopied } = useClipboard(url);
+
+  return (
+    <Box whitespace="nowrap">
+      <Text pr={2} fontWeight="bold">
+        {description}:
+      </Text>
+      <Tooltip placement="right" renderTrigger={() => <Text aria-label={description}>{url}</Text>}>
+        {!hasCopied && (
+          <Box p={1} onClick={onCopy} cursor="pointer">
+            Copy Server URL <Icon className="sl-ml-1" icon={faCopy} />
+          </Box>
+        )}
+        {hasCopied && (
+          <Box p={1}>
+            Copied Server URL <Icon className="sl-ml-1" icon={faCheck} />
+          </Box>
+        )}
+      </Tooltip>
+    </Box>
   );
 };

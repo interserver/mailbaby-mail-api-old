@@ -10,6 +10,7 @@ node_modules
 /coverage
 packages/*/coverage
 cypress/results
+test-results
 
 # production
 build
@@ -32,8 +33,20 @@ dist-storybook
 .cache
 .rpt2_cache
 .eslintcache
+/examples-dev
 
 # logs
 *.log*
 *-debug.log*
 *-error.log*
+/examples/react-gatsby/yarn.lock
+/examples/react-cra/yarn.lock
+/examples/angular/yarn.lock
+
+# Vim buffer files
+*.swp
+
+# Stoplight style guides
+.stoplight/styleguide.json
+.stoplight/custom-functions
+.spectral.json

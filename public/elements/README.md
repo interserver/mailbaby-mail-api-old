@@ -3,7 +3,7 @@
 [![Storybook](https://cdn.jsdelivr.net/gh/storybookjs/brand@master/badge/badge-storybook.svg)](https://stoplight-elements.netlify.app)
 [![CircleCI][circle_ci_image]][circle_ci]
 [![NPM Downloads][circle_ci_image]][npm]
-[![Buy us a tree][ecologi_image]][ecologi]
+[![Stoplight Forest](https://img.shields.io/ecologi/trees/stoplightinc)][stoplight_forest]
 
 Beautiful API documentation powered by OpenAPI and Markdown. Use these UI components to create API reference documentation, or more complete documentation with Markdown articles covering tutorials, how-to guides, etc.
 
@@ -22,6 +22,7 @@ Available as React Components, or Web Components, you can use Elements all toget
   - [🏁 Help Others Utilize Elements](#-help-others-utilize-elements)
   - [👏 Contributing](#-contributing)
   - [🎉 Thanks](#-thanks)
+  - [🌲 Sponsor Elements by Planting a Tree](#-sponsor-elements-by-planting-a-tree)
 
 ## 📖 Community
 
@@ -36,11 +37,12 @@ Stoplight Elements comes with a few example integration projects, showing you ho
 - **[bootstrap](./examples/bootstrap)** - A single HTML page utilizing the Web Components distribution via a global script tag.
 
 To run these examples yourself:
-1. Clone this repo and open a command line in the repo's directory.
-2. Run `yarn` to install all dependencies.
-3. Run `yarn build` to build Elements itself.
-4. Run `yarn build:react-cra` to build the *react-cra* example site. An analogous command is available for *react-gatsby* and *angular*, but is not required for **bootstrap**.
-5. Run `yarn serve:react-cra` (or equivalent) to serve the example project on `http://localhost:4200`.
+1. Clone this repo.
+2. Go to `examples` folder and open an example, e.g.: `examples/angular`.
+3. Run `yarn` to install all dependencies.
+4. Run `yarn start` to run the example.
+
+> **Note:** for **bootstrap** example just go straight to its directory and open the HTML file.
 
 ## 🏁 Usage
 
@@ -49,7 +51,7 @@ The examples will hopefully help show Elements working in close to real world si
 ### React Component
 
 ```bash
-$ npm install @stoplight/elements@beta
+$ npm install @stoplight/elements
 ```
 
 ```js
@@ -57,12 +59,11 @@ import { API } from "@stoplight/elements";
 
 <API
   apiDescriptionUrl="https://api.apis.guru/v2/specs/github.com/1.1.4/openapi.yaml"
-  layout="traditional"
   router="history"
 />
 ```
 
-For more information on using Elements as a React component, head over to our [React documentation](docs/getting-started/2-integrations/react.md).
+For more information on using Elements as a React component, head over to our [React documentation](docs/getting-started/elements/react.md).
 ### Web Component
 
 ```html
@@ -73,8 +74,8 @@ For more information on using Elements as a React component, head over to our [R
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Elements in HTML</title>
     <!-- Embed elements Elements via Web Component -->
-    <script src="https://unpkg.com/@stoplight/elements@beta/web-components.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/@stoplight/elements@beta/styles.min.css">
+    <script src="https://unpkg.com/@stoplight/elements/web-components.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@stoplight/elements/styles.min.css">
   </head>
   <body>
 
@@ -90,7 +91,7 @@ For more information on using Elements as a React component, head over to our [R
 
 Load this page up in your browser and you should see the [GitHub REST API](https://docs.github.com/en/rest) documented in Stoplight Elements.
 
-For more information on using Elements as a Web Component, head over to our [Web Component documentation](docs/getting-started/1-usage/web-component.md).
+For more information on using Elements as a Web Component, head over to our [Web Component documentation](docs/getting-started/elements/html.md).
 
 ## 🚧 Roadmap
 
@@ -105,6 +106,8 @@ For more information on using Elements as a Web Component, head over to our [Web
 - [ ] Callbacks
 - [ ] Webhooks
 - [x] Multiple APIs (a.k.a "Dev Portal")
+
+Submit your ideas for new functionality on the [Stoplight Roadmap](https://roadmap.stoplight.io/?utm_source=github&utm_medium=elements&utm_campaign=readme).
 
 ## ⚙️ Integrations
 
@@ -129,6 +132,12 @@ Elements is built on top of lots of excellent packages, and here are a few we'd 
 
 Check these projects out!
 
+## 🌲 Sponsor Elements by Planting a Tree
+
+If you would like to thank us for creating Elements, we ask that you [**buy the world a tree**][stoplight_forest].
+
+[stoplight_forest]: https://ecologi.com/stoplightinc
+
 [code_of_conduct]: CODE_OF_CONDUCT.md
 [contributing]: CONTRIBUTING.md
 [download-release]: https://github.com/stoplightio/elements/releases/latest
@@ -137,5 +146,4 @@ Check these projects out!
 [circle_ci_image]: https://img.shields.io/circleci/build/github/stoplightio/elements/main
 [npm]: https://www.npmjs.com/package/@stoplight/elements
 [npm_image]: https://img.shields.io/npm/dw/@stoplight/elements?color=blue
-[ecologi]: https://ecologi.com/stoplightinc
-[ecologi_image]: https://img.shields.io/badge/Buy%20us%20a%20tree-%F0%9F%8C%B3-lightgreen
+[stoplight_forest]: https://ecologi.com/stoplightinc

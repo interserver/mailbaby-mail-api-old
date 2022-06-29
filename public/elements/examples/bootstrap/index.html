@@ -10,20 +10,33 @@
     <title>Elements in Twitter Bootstrap</title>
 
     <!-- Elements: Web Component -->
-    <script src="https://unpkg.com/@stoplight/elements@beta/web-components.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/@stoplight/elements@beta/styles.min.css">
+    <script src="https://unpkg.com/@stoplight/elements/web-components.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@stoplight/elements/styles.min.css">
 
     <!-- Twitter Bootstrap -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <!-- Twitter Bootstrap: Sticky Footer Example -->
     <link rel="stylesheet" href="https://getbootstrap.com/docs/4.5/examples/sticky-footer-navbar/sticky-footer-navbar.css">
+
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      main {
+        flex: 1 0 0;
+        overflow: hidden;
+      }
+    </style>
   </head>
 
   <body>
 
     <header>
       <!-- Fixed navbar -->
-      <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+      <nav class="navbar navbar-expand-md navbar-dark bg-dark">
         <a class="navbar-brand" href="#">Fixed navbar</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
@@ -40,16 +53,12 @@
               <a class="nav-link disabled" href="#">Disabled</a>
             </li>
           </ul>
-          <form class="form-inline mt-2 mt-md-0">
-            <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-          </form>
         </div>
       </nav>
     </header>
 
     <!-- Begin page content -->
-    <main role="main" class="container">
+    <main role="main">
       <elements-api
         apiDescriptionUrl="https://api.apis.guru/v2/specs/github.com/1.1.4/openapi.yaml"
         router="hash"
@@ -61,6 +70,5 @@
         <span class="text-muted">Awesome footer goes here.</span>
       </div>
     </footer>
-
   </body>
 </html>

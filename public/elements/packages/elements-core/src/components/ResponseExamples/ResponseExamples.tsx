@@ -3,7 +3,8 @@ import { CodeViewer } from '@stoplight/mosaic-code-viewer';
 import { IHttpOperation, IMediaTypeContent } from '@stoplight/types';
 import React from 'react';
 
-import { useGenerateExampleFromMediaTypeContent } from '../../utils/exampleGeneration';
+import { exceedsSize, useGenerateExampleFromMediaTypeContent } from '../../utils/exampleGeneration/exampleGeneration';
+import { LoadMore } from '../LoadMore';
 
 export interface ResponseExamplesProps {
   httpOperation: IHttpOperation;
@@ -13,6 +14,8 @@ export interface ResponseExamplesProps {
 
 export const ResponseExamples = ({ httpOperation, responseMediaType, responseStatusCode }: ResponseExamplesProps) => {
   const [chosenExampleIndex, setChosenExampleIndex] = React.useState(0);
+  const [show, setShow] = React.useState<boolean>(false);
+  const [loading, setLoading] = React.useState<boolean>(false);
 
   const response = httpOperation.responses.find(response => response.code === responseStatusCode);
   const responseContents = response?.contents?.find(content => content.mediaType === responseMediaType);
@@ -21,7 +24,14 @@ export const ResponseExamples = ({ httpOperation, responseMediaType, responseSta
     userDefinedExamples = responseContents?.examples;
   }
 
-  const responseExample = useGenerateExampleFromMediaTypeContent(responseContents, chosenExampleIndex);
+  const responseExample = useGenerateExampleFromMediaTypeContent(responseContents, chosenExampleIndex, {
+    skipWriteOnly: true,
+  });
+
+  const handleLoadMore = () => {
+    setLoading(true);
+    setTimeout(() => setShow(true), 50);
+  };
 
   if (!userDefinedExamples && responseMediaType !== 'application/json') return null;
 
@@ -42,14 +52,25 @@ export const ResponseExamples = ({ httpOperation, responseMediaType, responseSta
     <Panel rounded isCollapsible={false}>
       <Panel.Titlebar>{examplesSelect || <Text color="body">Response Example</Text>}</Panel.Titlebar>
       <Panel.Content p={0}>
-        <CodeViewer
-          aria-label={responseExample}
-          noCopyButton
-          maxHeight="400px"
-          language="json"
-          value={responseExample}
-          showLineNumbers
-        />
+        {show || !exceedsSize(responseExample) ? (
+          <CodeViewer
+            aria-label={responseExample}
+            noCopyButton
+            maxHeight="500px"
+            language="json"
+            value={responseExample}
+            showLineNumbers
+            style={
+              // when not rendering in prose (markdown), reduce font size to be consistent with base UI
+              {
+                // @ts-expect-error react css typings do not allow for css variables...
+                '--fs-code': 12,
+              }
+            }
+          />
+        ) : (
+          <LoadMore loading={loading} onClick={handleLoadMore} />
+        )}
       </Panel.Content>
     </Panel>
   );

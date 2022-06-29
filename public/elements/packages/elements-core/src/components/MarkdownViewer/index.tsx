@@ -1,14 +1,10 @@
 import { IMarkdownViewerProps, MarkdownViewer as MarkdownViewerComponent } from '@stoplight/markdown-viewer';
 import * as React from 'react';
 
-import { useMarkdownComponents } from './CustomComponents/Provider';
-
 /**
- * Wraps @stoplight/markdown-viewer and passes in custom components from the context provider
+ * This wrapper is no longer needed and can be removed in the future.
  */
 export const MarkdownViewer = (props: IMarkdownViewerProps) => {
-  const components = useMarkdownComponents();
-
-  return <MarkdownViewerComponent {...props} components={components} />;
+  return <MarkdownViewerComponent {...props} />;
 };
 MarkdownViewer.displayName = 'MarkdownViewer';

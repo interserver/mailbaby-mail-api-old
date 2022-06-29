@@ -1,8 +1,9 @@
 import '../index';
 
-import { zoomApiYaml } from '@stoplight/elements/src/__fixtures__/api-descriptions/zoomApiYaml';
 import { parse } from '@stoplight/yaml';
 import React from 'react';
+
+import { zoomApiYaml } from '../../__fixtures__/api-descriptions/zoomApiYaml';
 
 declare global {
   namespace JSX {
@@ -32,6 +33,16 @@ export const TodosAPI = Template.bind({});
 TodosAPI.args = {
   apiDescriptionUrl: 'https://raw.githubusercontent.com/stoplightio/studio-demo/master/reference/todos/todo.v1.yaml',
 };
+
+export const TodosAPIWithFixHeight = (props: any) => (
+  <div style={{ height: 400 }}>
+    <elements-api {...props} />
+  </div>
+);
+TodosAPIWithFixHeight.args = {
+  apiDescriptionUrl: 'https://raw.githubusercontent.com/stoplightio/studio-demo/master/reference/todos/todo.v1.yaml',
+};
+TodosAPIWithFixHeight.storyName = 'TodosAPI with fixed height';
 
 export const ZoomApi = Template.bind({});
 ZoomApi.args = {

@@ -5,9 +5,11 @@ import * as React from 'react';
 import { InlineRefResolverProvider } from '../../context/InlineRefResolver';
 import { useParsedData } from '../../hooks/useParsedData';
 import { ParsedNode } from '../../types';
+import { ReferenceResolver } from '../../utils/ref-resolving/ReferenceResolver';
 import { Article } from './Article';
 import { HttpOperation } from './HttpOperation';
 import { HttpService } from './HttpService';
+import { ExportButtonProps } from './HttpService/ExportButton';
 import { Model } from './Model';
 
 interface BaseDocsProps {
@@ -15,11 +17,6 @@ interface BaseDocsProps {
    * CSS class to add to the root container.
    */
   className?: string;
-  /**
-   * If true, the component will hide its title.
-   * @default false
-   */
-  headless?: boolean;
 
   /**
    * URI of the document
@@ -32,20 +29,89 @@ interface BaseDocsProps {
   location?: Location;
 
   /**
-   * Allows to hide TryIt component
+   * The original title of the node. It serves as a fallback title in case on is not available inside the model.
    */
-  hideTryIt?: boolean;
+  nodeTitle?: string;
 
   /**
-   * Shows only operation document without right column
+   * @deprecated this property is no longer used and will be removed in the next major version
    */
-  hideTryItPanel?: boolean;
+  allowRouting?: boolean;
+
+  /**
+   * Export button props
+   */
+  exportProps?: ExportButtonProps;
+
+  /**
+   * Fetch credentials policy for TryIt component
+   * For more information: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
+   * @default "omit"
+   */
+
+  tryItCredentialsPolicy?: 'omit' | 'include' | 'same-origin';
+
+  /**
+   * Url of a CORS proxy that will be used to send requests in TryIt.
+   * Provided url will be prepended to an URL of an actual request.
+   * @default false
+   */
+  tryItCorsProxy?: string;
+
+  /**
+   * Allows to customize the layout of Docs
+   */
+  layoutOptions?: {
+    /**
+     * Allows to hide TryIt component
+     * @default false
+     */
+    hideTryIt?: boolean;
+
+    /**
+     * Shows only operation document without right column
+     * @default false
+     */
+    hideTryItPanel?: boolean;
+    /**
+     * If true, the component will hide its title
+     * @default false
+     */
+    noHeading?: boolean;
+    /**
+     * If true, the component will hide the Powered by Stoplight banner in Docs
+     * @default false
+     */
+    showPoweredByLink?: boolean;
+    /**
+     * Allows to hide model examples
+     * @default false
+     */
+    hideModelExamples?: boolean;
+    /**
+     * Allows to hide server information
+     * @default false
+     */
+    hideServerInfo?: boolean;
+    /**
+     * Allows to hide security information
+     * @default false
+     */
+    hideSecurityInfo?: boolean;
+
+    /**
+     * Allows to hide export button
+     * @default false
+     */
+    hideExport?: boolean;
+  };
 }
 
 export interface DocsProps extends BaseDocsProps {
   nodeType: NodeType;
   nodeData: unknown;
   useNodeForRefResolving?: boolean;
+  refResolver?: ReferenceResolver;
 }
 
 export interface DocsComponentProps<T = unknown> extends BaseDocsProps {
@@ -55,22 +121,28 @@ export interface DocsComponentProps<T = unknown> extends BaseDocsProps {
   data: T;
 }
 
-export const Docs = React.memo<DocsProps>(({ nodeType, nodeData, useNodeForRefResolving = false, ...commonProps }) => {
-  const parsedNode = useParsedData(nodeType, nodeData);
+export const Docs = React.memo<DocsProps>(
+  ({ nodeType, nodeData, useNodeForRefResolving = false, refResolver, ...commonProps }) => {
+    const parsedNode = useParsedData(nodeType, nodeData);
 
-  if (!parsedNode) {
-    // TODO: maybe report failure
-    return null;
-  }
+    if (!parsedNode) {
+      // TODO: maybe report failure
+      return null;
+    }
 
-  const parsedDocs = <ParsedDocs node={parsedNode} {...commonProps} />;
+    const parsedDocs = <ParsedDocs node={parsedNode} {...commonProps} />;
 
-  if (useNodeForRefResolving) {
-    return <InlineRefResolverProvider document={parsedNode.data}>{parsedDocs}</InlineRefResolverProvider>;
-  }
+    if (useNodeForRefResolving) {
+      return (
+        <InlineRefResolverProvider document={parsedNode.data} resolver={refResolver}>
+          {parsedDocs}
+        </InlineRefResolverProvider>
+      );
+    }
 
-  return parsedDocs;
-});
+    return parsedDocs;
+  },
+);
 
 export interface ParsedDocsProps extends BaseDocsProps {
   node: ParsedNode;

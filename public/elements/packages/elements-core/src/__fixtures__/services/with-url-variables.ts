@@ -18,6 +18,7 @@ export const httpServiceWithUrlVariables: IHttpService = {
   version: '1.0.0',
   servers: [
     {
+      id: '?http-server-0?',
       url: '{protocol}://{namespace}.stoplight.io',
       variables: {
         protocol: {
@@ -27,24 +28,28 @@ export const httpServiceWithUrlVariables: IHttpService = {
           default: 'default-namespace',
         },
       },
-      name: 'Production API',
+      description: 'Production API',
     },
     {
+      id: '?http-server-1?',
       url: 'https://api.staging.stoplight.io',
-      name: 'Staging API',
+      description: 'Staging API',
     },
     {
+      id: '?http-server-2?',
       url: 'https://api.int.stoplight.io',
-      name: 'Integration API',
+      description: 'Integration API',
     },
     {
+      id: '?http-server-3?',
       url: 'https://localhost:4060',
-      name: 'Development API',
+      description: 'Development API',
     },
   ],
   security: [],
   securitySchemes: [
     {
+      id: '?http-security?',
       key: 'oauth_scheme',
       type: 'oauth2',
       description:

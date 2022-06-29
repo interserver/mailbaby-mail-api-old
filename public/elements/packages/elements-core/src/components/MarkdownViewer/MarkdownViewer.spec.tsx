@@ -97,7 +97,7 @@ describe('MarkdownViewer', () => {
       ],
     ])('resolves relative image url for integration with %s', (_, branchNode, expectedUrl) => {
       render(
-        <MarkdownComponentsProvider value={{ image: createResolvedImageComponent(branchNode) }}>
+        <MarkdownComponentsProvider value={{ img: createResolvedImageComponent(branchNode) }}>
           <MarkdownViewer markdown={`![alt text](../../common/images/icon48.png "Logo Title Text 1")`} />
         </MarkdownComponentsProvider>,
       );
@@ -123,21 +123,33 @@ describe('MarkdownViewer', () => {
   "headers": {},
   "query": {
     "api_key": ["dc6zaTOxFJmzC"],
-    "limit": ["1"],
+    "limit": [],
     "q": ["cats"]
   }
 }
 \`\`\`
 `;
 
-      render(
+      const { unmount } = render(
         <MarkdownComponentsProvider value={{ code: CodeComponent }}>
           <MarkdownViewerWithTryIt markdown={markdown} />
         </MarkdownComponentsProvider>,
       );
 
-      expect(screen.getByRole('heading', { name: 'GET /gifs/search' })).toBeInTheDocument();
-      expect(screen.getByText('api_key')).toBeInTheDocument();
+      expect(screen.getByText('http://api.giphy.com/v1/gifs/search')).toBeInTheDocument();
+
+      // has default
+      expect(screen.getByText('api_key*')).toBeInTheDocument();
+      expect(screen.getByLabelText('api_key')).toHaveProperty('value', 'dc6zaTOxFJmzC');
+
+      expect(screen.getByText('q*')).toBeInTheDocument();
+      expect(screen.getByLabelText('q')).toHaveProperty('value', 'cats');
+
+      // no default
+      expect(screen.getByText('limit')).toBeInTheDocument();
+      expect(screen.getByLabelText('limit')).toHaveProperty('value', '');
+
+      unmount();
     });
   });
 });

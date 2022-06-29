@@ -1,22 +1,23 @@
-import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { InlineRefResolverProvider } from '@stoplight/elements-core/context/InlineRefResolver';
-import { withPersistenceBoundary } from '@stoplight/elements-core/context/Persistence';
-import { withMosaicProvider } from '@stoplight/elements-core/hoc/withMosaicProvider';
-import { withQueryClientProvider } from '@stoplight/elements-core/hoc/withQueryClientProvider';
-import { withRouter } from '@stoplight/elements-core/hoc/withRouter';
-import { useBundleRefsIntoDocument } from '@stoplight/elements-core/hooks/useBundleRefsIntoDocument';
-import { useParsedValue } from '@stoplight/elements-core/hooks/useParsedValue';
-import { withStyles } from '@stoplight/elements-core/styled';
-import { RoutingProps } from '@stoplight/elements-core/types';
+import {
+  InlineRefResolverProvider,
+  NonIdealState,
+  RoutingProps,
+  useBundleRefsIntoDocument,
+  useParsedValue,
+  withMosaicProvider,
+  withPersistenceBoundary,
+  withQueryClientProvider,
+  withRouter,
+  withStyles,
+} from '@stoplight/elements-core';
 import { Box, Flex, Icon } from '@stoplight/mosaic';
-import { NonIdealState } from '@stoplight/ui-kit';
-import { pipe } from 'lodash/fp';
+import { flow } from 'lodash';
 import * as React from 'react';
 import { useQuery } from 'react-query';
 
 import { APIWithSidebarLayout } from '../components/API/APIWithSidebarLayout';
 import { APIWithStackedLayout } from '../components/API/APIWithStackedLayout';
+import { useExportDocumentProps } from '../hooks/useExportDocumentProps';
 import { transformOasToServiceNode } from '../utils/oas';
 
 export type APIProps = APIPropsWithDocument | APIPropsWithUrl;
@@ -52,44 +53,88 @@ export interface CommonAPIProps extends RoutingProps {
   logo?: string;
 
   /**
-   * Allows to hide TryIt component
+   * Allows hiding the TryIt component
    */
   hideTryIt?: boolean;
+
+  /**
+   * Hides schemas from being displayed in Table of Contents
+   */
+  hideSchemas?: boolean;
+
+  /**
+   * Hides models and operations marked as internal
+   * @default false
+   */
+  hideInternal?: boolean;
+
+  /**
+   * Hides export button from being displayed in overview page
+   * @default false
+   */
+  hideExport?: boolean;
+
+  /**
+   * Fetch credentials policy for TryIt component
+   * For more information: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
+   * @default "omit"
+   */
+
+  tryItCredentialsPolicy?: 'omit' | 'include' | 'same-origin';
+
+  /**
+   * Url of a CORS proxy that will be used to send requests in TryIt.
+   * Provided url will be prepended to an URL of an actual request.
+   * @default false
+   */
+  tryItCorsProxy?: string;
 }
 
 const propsAreWithDocument = (props: APIProps): props is APIPropsWithDocument => {
   return props.hasOwnProperty('apiDescriptionDocument');
 };
 
-const APIImpl: React.FC<APIProps> = props => {
-  const { layout, apiDescriptionUrl = '', logo, hideTryIt } = props;
+export const APIImpl: React.FC<APIProps> = props => {
+  const {
+    layout,
+    apiDescriptionUrl = '',
+    logo,
+    hideTryIt,
+    hideSchemas,
+    hideInternal,
+    hideExport,
+    tryItCredentialsPolicy,
+    tryItCorsProxy,
+  } = props;
   const apiDescriptionDocument = propsAreWithDocument(props) ? props.apiDescriptionDocument : undefined;
 
   const { data: fetchedDocument, error } = useQuery(
     [apiDescriptionUrl],
-    () => fetch(apiDescriptionUrl).then(res => res.text()),
+    () =>
+      fetch(apiDescriptionUrl).then(res => {
+        if (res.ok) {
+          return res.text();
+        }
+        throw new Error(`Unable to load description document, status code: ${res.status}`);
+      }),
     {
       enabled: apiDescriptionUrl !== '' && !apiDescriptionDocument,
     },
   );
 
-  React.useEffect(() => {
-    if (error) {
-      console.error('Could not fetch spec', error);
-    }
-  }, [error]);
-
-  const parsedDocument = useParsedValue(apiDescriptionDocument || fetchedDocument);
+  const document = apiDescriptionDocument || fetchedDocument || '';
+  const parsedDocument = useParsedValue(document);
   const bundledDocument = useBundleRefsIntoDocument(parsedDocument, { baseUrl: apiDescriptionUrl });
   const serviceNode = React.useMemo(() => transformOasToServiceNode(bundledDocument), [bundledDocument]);
+  const exportProps = useExportDocumentProps({ originalDocument: document, bundledDocument });
 
   if (error) {
     return (
       <Flex justify="center" alignItems="center" w="full" minH="screen">
         <NonIdealState
-          title="Something went wrong"
-          description={String(error)}
-          icon={<FontAwesomeIcon icon={faExclamationTriangle} />}
+          title="Document could not be loaded"
+          description="The API description document could not be fetched. This could indicate connectivity problems, or issues with the server hosting the spec."
+          icon="exclamation-triangle"
         />
       </Flex>
     );
@@ -109,7 +154,6 @@ const APIImpl: React.FC<APIProps> = props => {
         <NonIdealState
           title="Failed to parse OpenAPI file"
           description="Please make sure your OpenAPI file is valid and try again"
-          icon={<FontAwesomeIcon icon={faExclamationTriangle} />}
         />
       </Flex>
     );
@@ -118,15 +162,32 @@ const APIImpl: React.FC<APIProps> = props => {
   return (
     <InlineRefResolverProvider document={parsedDocument}>
       {layout === 'stacked' ? (
-        <APIWithStackedLayout serviceNode={serviceNode} hideTryIt={hideTryIt} />
+        <APIWithStackedLayout
+          serviceNode={serviceNode}
+          hideTryIt={hideTryIt}
+          hideExport={hideExport}
+          exportProps={exportProps}
+          tryItCredentialsPolicy={tryItCredentialsPolicy}
+          tryItCorsProxy={tryItCorsProxy}
+        />
       ) : (
-        <APIWithSidebarLayout logo={logo} serviceNode={serviceNode} hideTryIt={hideTryIt} />
+        <APIWithSidebarLayout
+          logo={logo}
+          serviceNode={serviceNode}
+          hideTryIt={hideTryIt}
+          hideSchemas={hideSchemas}
+          hideInternal={hideInternal}
+          hideExport={hideExport}
+          exportProps={exportProps}
+          tryItCredentialsPolicy={tryItCredentialsPolicy}
+          tryItCorsProxy={tryItCorsProxy}
+        />
       )}
     </InlineRefResolverProvider>
   );
 };
 
-export const API = pipe(
+export const API = flow(
   withRouter,
   withStyles,
   withPersistenceBoundary,

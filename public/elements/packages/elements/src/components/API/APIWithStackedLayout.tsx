@@ -1,10 +1,13 @@
-import { Docs, ParsedDocs } from '@stoplight/elements-core/components/Docs';
-import { DeprecatedBadge } from '@stoplight/elements-core/components/Docs/HttpOperation/Badges';
-import { TryItWithRequestSamples } from '@stoplight/elements-core/components/TryIt';
-import { HttpMethodColors } from '@stoplight/elements-core/constants';
-import { Box } from '@stoplight/mosaic';
+import {
+  DeprecatedBadge,
+  Docs,
+  ExportButtonProps,
+  HttpMethodColors,
+  ParsedDocs,
+  TryItWithRequestSamples,
+} from '@stoplight/elements-core';
+import { Box, Flex, Icon, Tab, TabList, TabPanel, TabPanels, Tabs } from '@stoplight/mosaic';
 import { NodeType } from '@stoplight/types';
-import { Collapse, Icon, Tab, Tabs } from '@stoplight/ui-kit';
 import cn from 'classnames';
 import * as React from 'react';
 import { useLocation } from 'react-router-dom';
@@ -12,39 +15,62 @@ import { useLocation } from 'react-router-dom';
 import { OperationNode, ServiceNode } from '../../utils/oas/types';
 import { computeTagGroups, TagGroup } from './utils';
 
+type TryItCredentialsPolicy = 'omit' | 'include' | 'same-origin';
+
 type StackedLayoutProps = {
   serviceNode: ServiceNode;
   hideTryIt?: boolean;
+  hideExport?: boolean;
+  exportProps?: ExportButtonProps;
+  tryItCredentialsPolicy?: TryItCredentialsPolicy;
+  tryItCorsProxy?: string;
 };
 
 const itemMatchesHash = (hash: string, item: OperationNode) => {
   return hash.substr(1) === `${item.name}-${item.data.method}`;
 };
 
-const TryItContext = React.createContext<{ hideTryIt?: boolean }>({ hideTryIt: false });
+const TryItContext = React.createContext<{
+  hideTryIt?: boolean;
+  tryItCredentialsPolicy?: TryItCredentialsPolicy;
+  corsProxy?: string;
+}>({
+  hideTryIt: false,
+  tryItCredentialsPolicy: 'omit',
+});
 TryItContext.displayName = 'TryItContext';
 
-export const APIWithStackedLayout: React.FC<StackedLayoutProps> = ({ serviceNode, hideTryIt }) => {
+export const APIWithStackedLayout: React.FC<StackedLayoutProps> = ({
+  serviceNode,
+  hideTryIt,
+  hideExport,
+  exportProps,
+  tryItCredentialsPolicy,
+  tryItCorsProxy,
+}) => {
   const location = useLocation();
   const { groups } = computeTagGroups(serviceNode);
 
   return (
-    <TryItContext.Provider value={{ hideTryIt }}>
-      <div className="w-full flex flex-col m-auto max-w-4xl">
-        <div className="w-full border-b dark:border-gray-6">
+    <TryItContext.Provider value={{ hideTryIt, tryItCredentialsPolicy, corsProxy: tryItCorsProxy }}>
+      <Flex w="full" flexDirection="col" m="auto" className="sl-max-w-4xl">
+        <Box w="full" borderB>
           <Docs
-            className="mx-auto"
+            className="sl-mx-auto"
             nodeData={serviceNode.data}
+            nodeTitle={serviceNode.name}
             nodeType={NodeType.HttpService}
-            headless
             location={location}
+            layoutOptions={{ showPoweredByLink: true, hideExport }}
+            exportProps={exportProps}
+            tryItCredentialsPolicy={tryItCredentialsPolicy}
           />
-        </div>
+        </Box>
 
         {groups.map(group => (
           <Group key={group.title} group={group} />
         ))}
-      </div>
+      </Flex>
     </TryItContext.Provider>
   );
 };
@@ -72,36 +98,42 @@ const Group = React.memo<{ group: TagGroup }>(({ group }) => {
   }, [shouldExpand, urlHashMatches, group, hash]);
 
   return (
-    <div>
-      <div
+    <Box>
+      <Flex
         ref={scrollRef}
         onClick={onClick}
-        className="mx-auto flex justify-between items-center border-b dark:border-gray-6 text-gray-7 dark:text-gray-7 hover:text-gray-6 px-2 py-4 cursor-pointer"
+        mx="auto"
+        justifyContent="between"
+        alignItems="center"
+        borderB
+        px={2}
+        py={4}
+        cursor="pointer"
+        color={{ default: 'current', hover: 'muted' }}
       >
-        <div className="text-lg font-medium">{group.title}</div>
-        <Icon className="mr-2" icon={isExpanded ? 'chevron-down' : 'chevron-right'} iconSize={14} />
-      </div>
+        <Box fontSize="lg" fontWeight="medium">
+          {group.title}
+        </Box>
+        <Icon className="sl-mr-2" icon={isExpanded ? 'chevron-down' : 'chevron-right'} size="sm" />
+      </Flex>
 
       <Collapse isOpen={isExpanded}>
         {group.items.map(item => {
           return <Item key={item.uri} item={item} />;
         })}
       </Collapse>
-    </div>
+    </Box>
   );
 });
-
-type PanelTabId = 'docs' | 'tryit';
 
 const Item = React.memo<{ item: OperationNode }>(({ item }) => {
   const location = useLocation();
   const { hash } = location;
   const [isExpanded, setIsExpanded] = React.useState(false);
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
-  const [tabId, setTabId] = React.useState<PanelTabId>('docs');
   const color = HttpMethodColors[item.data.method] || 'gray';
   const isDeprecated = !!item.data.deprecated;
-  const { hideTryIt } = React.useContext(TryItContext);
+  const { hideTryIt, tryItCredentialsPolicy, corsProxy } = React.useContext(TryItContext);
 
   const onClick = React.useCallback(() => setIsExpanded(!isExpanded), [isExpanded]);
 
@@ -115,55 +147,71 @@ const Item = React.memo<{ item: OperationNode }>(({ item }) => {
   }, [hash, item]);
 
   return (
-    <div
+    <Box
       ref={scrollRef}
-      className={cn('w-full my-2 border border-transparent hover:border-gray-2 hover:bg-darken-1', {
-        'border-gray-2 bg-darken-1': isExpanded,
-      })}
+      w="full"
+      my={2}
+      border
+      borderColor={{ default: isExpanded ? 'light' : 'transparent', hover: 'light' }}
+      bg={{ default: isExpanded ? 'code' : 'transparent', hover: 'code' }}
     >
-      <div
-        onClick={onClick}
-        className="mx-auto flex items-center text-gray-7 dark:text-gray-3 hover:text-gray-8 p-2 cursor-pointer text-lg"
-      >
-        <div
-          className={cn(
-            `w-24 uppercase mr-5 text-center text-base font-semibold border rounded px-2 bg-white`,
-            `text-${color}`,
-            `border-${color}`,
-          )}
+      <Flex mx="auto" alignItems="center" cursor="pointer" fontSize="lg" p={2} onClick={onClick} color="current">
+        <Box
+          w={24}
+          textTransform="uppercase"
+          textAlign="center"
+          fontWeight="semibold"
+          border
+          rounded
+          px={2}
+          bg="canvas"
+          className={cn(`sl-mr-5 sl-text-base`, `sl-text-${color}`, `sl-border-${color}`)}
         >
           {item.data.method || 'UNKNOWN'}
-        </div>
+        </Box>
 
-        <div className="flex-1 font-medium break-all">{item.name}</div>
+        <Box flex={1} fontWeight="medium" wordBreak="all">
+          {item.name}
+        </Box>
         {isDeprecated && <DeprecatedBadge />}
-      </div>
+      </Flex>
 
       <Collapse isOpen={isExpanded}>
         {hideTryIt ? (
-          <Box as={ParsedDocs} node={item} headless p={4} />
+          <Box as={ParsedDocs} layoutOptions={{ noHeading: true, hideTryItPanel: true }} node={item} p={4} />
         ) : (
-          <Tabs
-            className="PreviewTabs mx-auto"
-            selectedTabId={tabId}
-            onChange={(tabId: PanelTabId) => setTabId(tabId)}
-            renderActiveTabPanelOnly
-          >
-            <Tab
-              id="docs"
-              title="Docs"
-              className="p-4"
-              panel={<ParsedDocs node={item} headless location={location} />}
-            />
-            <Tab
-              id="tryit"
-              title="Try It"
-              className="p-4"
-              panel={<TryItWithRequestSamples httpOperation={item.data} />}
-            />
+          <Tabs appearance="line">
+            <TabList>
+              <Tab>Docs</Tab>
+              <Tab>TryIt</Tab>
+            </TabList>
+
+            <TabPanels>
+              <TabPanel>
+                <ParsedDocs
+                  className="sl-px-4"
+                  node={item}
+                  location={location}
+                  layoutOptions={{ noHeading: true, hideTryItPanel: true }}
+                />
+              </TabPanel>
+              <TabPanel>
+                <TryItWithRequestSamples
+                  httpOperation={item.data}
+                  tryItCredentialsPolicy={tryItCredentialsPolicy}
+                  corsProxy={corsProxy}
+                />
+              </TabPanel>
+            </TabPanels>
           </Tabs>
         )}
       </Collapse>
-    </div>
+    </Box>
   );
 });
+
+const Collapse: React.FC<{ isOpen: boolean }> = ({ isOpen, children }) => {
+  if (!isOpen) return null;
+
+  return <Box>{children}</Box>;
+};

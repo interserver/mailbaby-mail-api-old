@@ -1,9 +1,10 @@
-import {
+import { slugify } from '@stoplight/elements-core';
+import type {
   Oas2HttpOperationTransformer,
   Oas2HttpServiceTransformer,
   Oas3HttpOperationTransformer,
   Oas3HttpServiceTransformer,
-} from '@stoplight/http-spec/oas/types';
+} from '@stoplight/http-spec/oas';
 import { transformOas2Operation, transformOas2Service } from '@stoplight/http-spec/oas2';
 import { transformOas3Operation, transformOas3Service } from '@stoplight/http-spec/oas3';
 import { encodePointerFragment, pointerToPath } from '@stoplight/json';
@@ -130,14 +131,6 @@ function computeChildNodes(
   return nodes;
 }
 
-function slugify(name: string) {
-  return name
-    .replace(/\/|{|}|\s/g, '-')
-    .replace(/-{2,}/, '-')
-    .replace(/^-/, '')
-    .replace(/-$/, '');
-}
-
 function findMapMatch(key: string | number, map: ISourceNodeMap[]): ISourceNodeMap | void {
   if (typeof key === 'number') return;
   for (const entry of map) {
@@ -145,4 +138,13 @@ function findMapMatch(key: string | number, map: ISourceNodeMap[]): ISourceNodeM
       return entry;
     }
   }
+}
+
+export function isJson(value: string) {
+  try {
+    JSON.parse(value);
+  } catch (e) {
+    return false;
+  }
+  return true;
 }

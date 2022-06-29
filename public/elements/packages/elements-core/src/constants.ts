@@ -7,9 +7,8 @@ import {
   faQuestionCircle,
   IconDefinition,
 } from '@fortawesome/free-solid-svg-icons';
+import { IntentVals } from '@stoplight/mosaic';
 import { Dictionary, HttpSecurityScheme, NodeType } from '@stoplight/types';
-
-export const defaultPlatformUrl = 'https://stoplight.io';
 
 export const NodeTypeColors: Dictionary<string, NodeType> = {
   http_operation: '#6a6acb',
@@ -21,6 +20,7 @@ export const NodeTypeColors: Dictionary<string, NodeType> = {
   unknown: '',
   table_of_contents: '',
   spectral_ruleset: '',
+  styleguide: '',
 };
 
 export const NodeTypePrettyName: Dictionary<string, NodeType> = {
@@ -33,6 +33,7 @@ export const NodeTypePrettyName: Dictionary<string, NodeType> = {
   unknown: '',
   table_of_contents: '',
   spectral_ruleset: '',
+  styleguide: '',
 };
 
 export const NodeTypeIconDefs: Dictionary<IconDefinition, NodeType> = {
@@ -45,6 +46,7 @@ export const NodeTypeIconDefs: Dictionary<IconDefinition, NodeType> = {
   generic: faQuestionCircle,
   table_of_contents: faQuestionCircle,
   spectral_ruleset: faQuestionCircle,
+  styleguide: faQuestionCircle,
 };
 
 export const HttpSecuritySchemeColors: Partial<Record<HttpSecurityScheme['type'], string>> = {
@@ -139,4 +141,13 @@ export const HttpCodeDescriptions = {
   511: 'Network Authentication Required',
   598: 'Network read timeout error',
   599: 'Network connect timeout error',
+};
+
+export const badgeDefaultBackgroundColor = '#293742';
+export const badgeDefaultColor = '#FFFFFF';
+
+export const CodeToIntentMap: Record<number, IntentVals> = {
+  2: 'success',
+  4: 'warning',
+  5: 'danger',
 };

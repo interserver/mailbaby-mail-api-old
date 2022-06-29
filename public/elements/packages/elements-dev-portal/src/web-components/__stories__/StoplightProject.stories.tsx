@@ -16,17 +16,18 @@ const Template: Story = (props: any) => <elements-stoplight-project {...props} /
 export default {
   title: 'web-components/StoplightProject',
   argTypes: {
-    workspaceSlug: { control: 'text' },
-    projectSlug: { control: 'text' },
+    projectId: { control: 'text' },
     platformUrl: { control: 'text' },
-    router: { control: { type: 'inline-radio', options: ['history', 'hash', 'memory'] }, defaultValue: 'history' },
+    router: {
+      control: { type: 'inline-radio', options: ['history', 'hash', 'memory'] },
+      defaultValue: 'history',
+    },
   },
 };
 
 export const defaultProject = Template.bind({});
 defaultProject.storyName = "Stoplight's Demo workspace";
 defaultProject.args = {
-  workspaceSlug: 'demo',
-  projectSlug: 'public-apis',
+  projectId: 'cHJqOjYwNjYx',
   platformUrl: 'https://stoplight.io',
 };

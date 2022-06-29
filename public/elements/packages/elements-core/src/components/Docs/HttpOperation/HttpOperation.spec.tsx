@@ -1,8 +1,7 @@
 import { HttpParamStyles, IHttpOperation } from '@stoplight/types';
 import { screen } from '@testing-library/dom';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import * as React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
 
 import httpOperation from '../../../__fixtures__/operations/put-todos';
 import requestBody from '../../../__fixtures__/operations/request-body';
@@ -51,29 +50,32 @@ describe('HttpOperation', () => {
 
       unmount();
     });
+  });
 
-    it('should display auth badges for operation security schemas', () => {
+  describe('Security', () => {
+    it('should display security panel for each security scheme', () => {
       const { unmount } = render(<HttpOperation data={{ ...httpOperation }} />);
 
-      const apikeyBadge = getSecurityBadge(/API Key/i);
-      const basicBadge = getSecurityBadge(/Basic Auth/i);
-      const bearerBadge = getSecurityBadge(/Bearer Auth/i);
-      const oidcBadge = getSecurityBadge(/OpenID Connect/i);
-      const oauthBadge = getSecurityBadge(/OAuth 2.0 \(write:pets, read:pets\)/i);
+      const apikeyPanel = screen.getByText(/Security: API Key/i);
+      const basicPanel = screen.getByText(/Security: Basic Auth/i);
+      const bearerPanel = screen.getByText(/Security: Bearer Auth/i);
+      const oidcPanel = screen.getByText(/Security: OpenID Connect/i);
+      const oauthPanel = screen.getByText(/Security: OAuth 2.0/i);
 
-      expect(apikeyBadge).toBeInTheDocument();
-      expect(basicBadge).toBeInTheDocument();
-      expect(bearerBadge).toBeInTheDocument();
-      expect(oidcBadge).toBeInTheDocument();
-      expect(oauthBadge).toBeInTheDocument();
+      expect(apikeyPanel).toBeInTheDocument();
+      expect(basicPanel).toBeInTheDocument();
+      expect(bearerPanel).toBeInTheDocument();
+      expect(oidcPanel).toBeInTheDocument();
+      expect(oauthPanel).toBeInTheDocument();
 
       unmount();
     });
 
-    it('displays scopes in badge when present', () => {
+    it('displays keys for duplicated security types', () => {
       const security = [
         [
           {
+            id: '?http-security-0?',
             key: 'oauth2WithScopes',
             type: 'oauth2' as const,
             description: 'foo',
@@ -89,6 +91,7 @@ describe('HttpOperation', () => {
             },
           },
           {
+            id: '?http-security-1?',
             key: 'oauth2WithEmptyScopes',
             type: 'oauth2' as const,
             description: 'foo',
@@ -106,30 +109,33 @@ describe('HttpOperation', () => {
 
       const { unmount } = render(<HttpOperation data={{ ...httpOperation, security }} />);
 
-      const oauth2Badge = getSecurityBadge(/^OAuth 2.0 \(write:pets, read:pets\)$/i);
-      const oauth2WithEmptyScopesBadge = getSecurityBadge(/^OAuth 2.0$/i);
+      const oauth2Panel = screen.getByText(/^Security: OAuth 2.0 \(oauth2WithScopes\)$/i);
+      const oauth2WithEmptyScopesPanel = screen.getByText(/^Security: OAuth 2.0 \(oauth2WithEmptyScopes\)$/i);
 
-      expect(oauth2Badge).toBeInTheDocument();
-      expect(oauth2WithEmptyScopesBadge).toBeInTheDocument();
+      expect(oauth2Panel).toBeInTheDocument();
+      expect(oauth2WithEmptyScopesPanel).toBeInTheDocument();
 
       unmount();
     });
 
-    it('should contain link to Overview for operation with uri', () => {
-      const { unmount } = render(
-        <Router>
-          <HttpOperation data={{ ...httpOperation }} uri="/reference/todos/openapi.v1.json/paths/~1todos/post" />
-        </Router>,
-      );
-      const apikeyBadge = getSecurityBadge(/API Key/i);
-      expect(apikeyBadge?.closest('a')).toHaveAttribute('href', '/reference/todos/openapi.v1.json?security=api_key');
+    it('should expand on click', () => {
+      const { unmount } = render(<HttpOperation data={{ ...httpOperation }} />);
+
+      const oauthPanel = screen.getByText(/Security: OAuth 2.0/i);
+
+      expect(oauthPanel).toBeInTheDocument();
+      expect(screen.queryByText('write:pets')).not.toBeInTheDocument();
+
+      act(() => oauthPanel.click());
+
+      expect(screen.queryAllByText('write:pets')).toHaveLength(4);
 
       unmount();
     });
   });
 
   describe('Query Parameters', () => {
-    it('should render correct validations', async () => {
+    it('should render panel when there are query parameters', async () => {
       const data: IHttpOperation = {
         id: 'get',
         method: 'get',
@@ -138,6 +144,7 @@ describe('HttpOperation', () => {
         request: {
           query: [
             {
+              id: '?http-query-parameter-name?',
               name: 'parameter name',
               description: 'a parameter description',
               schema: {
@@ -151,8 +158,9 @@ describe('HttpOperation', () => {
               style: HttpParamStyles.Form,
               examples: [
                 {
+                  id: '?http-example-0?',
                   value: 'example value',
-                  key: 'example',
+                  key: 'example key',
                 },
               ],
             },
@@ -160,16 +168,33 @@ describe('HttpOperation', () => {
         },
       };
 
-      render(<HttpOperation data={data} />);
+      const { unmount } = render(<HttpOperation data={data} />);
 
-      const queryParametersPanel = screen.queryByRole('heading', { name: 'Query' });
+      const queryParametersPanel = screen.queryByRole('heading', { name: 'Query Parameters' });
       expect(queryParametersPanel).toBeInTheDocument();
       expect(queryParametersPanel).toBeVisible();
       expect(queryParametersPanel).toBeEnabled();
 
-      expect(await screen.findByText(/parameter name$/)).toBeInTheDocument();
-      expect(await screen.findByText(/required/)).toBeInTheDocument();
-      expect(await screen.findByText(/deprecated/)).toBeInTheDocument();
+      unmount();
+    });
+
+    it('should not render panel when there are no header parameters', () => {
+      const data: IHttpOperation = {
+        id: 'get',
+        method: 'get',
+        path: '/path',
+        responses: [],
+        request: {
+          query: [],
+        },
+      };
+
+      const { unmount } = render(<HttpOperation data={data} />);
+
+      const headersPanel = screen.queryByRole('heading', { name: 'Query Parameters' });
+      expect(headersPanel).not.toBeInTheDocument();
+
+      unmount();
     });
 
     it('should not render default styles', () => {
@@ -181,6 +206,7 @@ describe('HttpOperation', () => {
         request: {
           query: [
             {
+              id: '?http-query-default-style-param?',
               name: 'default style param',
               schema: {
                 type: 'string',
@@ -188,6 +214,7 @@ describe('HttpOperation', () => {
               style: HttpParamStyles.Form,
             },
             {
+              id: '?http-query-different-style-param?',
               name: 'different style param',
               schema: {
                 type: 'string',
@@ -216,6 +243,7 @@ describe('HttpOperation', () => {
         request: {
           headers: [
             {
+              id: '?http-header-parameter-name?',
               name: 'parameter name',
               description: 'a parameter description',
               schema: {
@@ -227,6 +255,7 @@ describe('HttpOperation', () => {
               style: HttpParamStyles.Simple,
               examples: [
                 {
+                  id: '?http-example-0?',
                   key: 'example',
                   value: 'example value',
                 },
@@ -242,8 +271,6 @@ describe('HttpOperation', () => {
       expect(headersPanel).toBeInTheDocument();
       expect(headersPanel).toBeVisible();
       expect(headersPanel).toBeEnabled();
-
-      expect(screen.queryByText('parameter name')).toBeInTheDocument();
 
       unmount();
     });
@@ -269,7 +296,7 @@ describe('HttpOperation', () => {
   });
 
   describe('Path Parameters', () => {
-    it('should render correct validations', async () => {
+    it('should render panel when there are path parameters', async () => {
       const data: IHttpOperation = {
         id: 'get',
         method: 'get',
@@ -279,10 +306,12 @@ describe('HttpOperation', () => {
         request: {
           path: [
             {
+              id: '?http-path-param-parameter-name?',
               name: 'parameter name',
               description: 'a parameter description',
               schema: {
                 type: 'string',
+                examples: ['another example'],
               },
               deprecated: true,
               explode: true,
@@ -290,6 +319,7 @@ describe('HttpOperation', () => {
               style: HttpParamStyles.Simple,
               examples: [
                 {
+                  id: '?http-example-example?',
                   key: 'example',
                   value: 'example value',
                 },
@@ -299,32 +329,12 @@ describe('HttpOperation', () => {
         },
       };
 
-      render(<HttpOperation data={data} />);
-
-      const pathParametersPanel = screen.getByRole('button', { name: /GET.*\/path/i });
-      expect(pathParametersPanel).toBeInTheDocument();
-      expect(pathParametersPanel).toBeVisible();
-      expect(pathParametersPanel).toBeEnabled();
-
-      expect(await screen.findByText('parameter name')).toBeInTheDocument();
-    });
-
-    it('should still show path parameters panel when there are no parameters', () => {
-      const data = {
-        id: 'get',
-        summary: 'Some endpoint',
-        method: 'get',
-        path: '/path',
-        responses: [],
-        request: {},
-      };
-
       const { unmount } = render(<HttpOperation data={data} />);
 
-      const pathParametersPanel = screen.queryAllByRole('heading', { name: /GET.*\/path/i });
-      expect(pathParametersPanel).toHaveLength(2);
-      expect(pathParametersPanel[0]).toBeVisible();
-      expect(pathParametersPanel[1]).toBeVisible();
+      const headersPanel = screen.queryByRole('heading', { name: 'Path Parameters' });
+      expect(headersPanel).toBeInTheDocument();
+      expect(headersPanel).toBeVisible();
+      expect(headersPanel).toBeEnabled();
 
       unmount();
     });
@@ -337,8 +347,10 @@ describe('HttpOperation', () => {
       method: 'get',
       request: {
         body: {
+          id: '?http-request-body?',
           contents: [
             {
+              id: '?http-request-body-media-0?',
               mediaType: 'application/json',
               schema: {
                 type: 'object',
@@ -347,16 +359,11 @@ describe('HttpOperation', () => {
                 },
               },
             },
-            { mediaType: 'application/xml' },
+            { id: '?http-request-body-media-1?', mediaType: 'application/xml' },
           ],
         },
       },
-      responses: [
-        {
-          code: '200',
-          description: 'Hello world!',
-        },
-      ],
+      responses: [{ id: '?http-response-200?', code: '200', description: 'Hello world!' }],
     };
 
     const httpOperationWithoutRequestBodyContents = {
@@ -365,16 +372,12 @@ describe('HttpOperation', () => {
       method: 'get',
       request: {
         body: {
+          id: '?http-request-body?',
           description: 'Some body description',
           contents: [],
         },
       },
-      responses: [
-        {
-          code: '200',
-          description: 'Hello world!',
-        },
-      ],
+      responses: [{ id: '?http-response-200?', code: '200', description: 'Hello world!' }],
     };
 
     it('should render select for content type', () => {
@@ -410,19 +413,23 @@ describe('HttpOperation', () => {
     });
 
     it('should display description even if there are no contents', async () => {
-      render(<HttpOperation data={httpOperationWithoutRequestBodyContents} />);
+      const { unmount } = render(<HttpOperation data={httpOperationWithoutRequestBodyContents} />);
 
       expect(await screen.findByText('Some body description')).toBeInTheDocument();
+
+      unmount();
     });
 
     it('should display schema for content type', async () => {
-      render(<HttpOperation data={httpOperationWithRequestBodyContents} />);
+      const { unmount } = render(<HttpOperation data={httpOperationWithRequestBodyContents} />);
 
       expect(await screen.findByText('some_property')).toBeInTheDocument();
+
+      unmount();
     });
 
     it('request body selection in Docs should update TryIt', async () => {
-      render(<HttpOperation data={requestBody} />);
+      const { unmount } = render(<HttpOperation data={requestBody} />);
 
       const body = screen.getByRole('textbox');
       const requestSample = await screen.findByLabelText(
@@ -440,6 +447,8 @@ describe('HttpOperation', () => {
 
       expect(screen.getByLabelText('someEnum')).toBeInTheDocument();
       expect(secondRequestSample).toBeInTheDocument();
+
+      unmount();
     });
   });
 
@@ -450,10 +459,12 @@ describe('HttpOperation', () => {
       method: 'get',
       responses: [
         {
+          id: '?http-response-200?',
           code: '200',
           description: 'Hello world!',
           contents: [
             {
+              id: '?http-request-body-media-0?',
               mediaType: 'application/json',
               schema: {
                 type: 'object',
@@ -462,7 +473,7 @@ describe('HttpOperation', () => {
                 },
               },
             },
-            { mediaType: 'application/xml' },
+            { id: '?http-request-body-media-1?', mediaType: 'application/xml' },
           ],
         },
       ],
@@ -472,12 +483,7 @@ describe('HttpOperation', () => {
       path: '/',
       id: 'some_id',
       method: 'get',
-      responses: [
-        {
-          code: '200',
-          description: 'Hello world!',
-        },
-      ],
+      responses: [{ id: '?http-response-200?', code: '200', description: 'Hello world!' }],
     };
 
     it('should render the MarkdownViewer with description', async () => {
@@ -519,7 +525,7 @@ describe('HttpOperation', () => {
     });
 
     it('should display schema for chosen content type', async () => {
-      render(<HttpOperation data={httpOperationWithResponseBodyContents} />);
+      const { unmount } = render(<HttpOperation data={httpOperationWithResponseBodyContents} />);
 
       const property = await screen.findByText('some_property');
       expect(property).toBeInTheDocument();
@@ -529,30 +535,32 @@ describe('HttpOperation', () => {
       chooseOption(select, 'application/xml');
 
       expect(screen.queryByText('some_property')).not.toBeInTheDocument();
+
+      unmount();
     });
   });
 
   describe('Visibility', () => {
     it('should hide TryIt', async () => {
-      render(<HttpOperation data={httpOperation} hideTryIt />);
+      const { unmount } = render(<HttpOperation data={httpOperation} layoutOptions={{ hideTryIt: true }} />);
 
-      expect(screen.queryByText('Send Request')).not.toBeInTheDocument();
+      expect(screen.queryByText('Send API Request')).not.toBeInTheDocument();
       expect(await screen.findByText('Response Example')).toBeInTheDocument();
+
+      unmount();
     });
 
-    it('should hide right column', async () => {
-      render(<HttpOperation data={httpOperation} hideTryItPanel />);
+    it('should hide right column', () => {
+      const { unmount } = render(<HttpOperation data={httpOperation} layoutOptions={{ hideTryItPanel: true }} />);
 
-      expect(screen.queryByText('Send Request')).not.toBeInTheDocument();
+      expect(screen.queryByText('Send API Request')).not.toBeInTheDocument();
       expect(screen.queryByText('Response Example')).not.toBeInTheDocument();
+
+      unmount();
     });
   });
 });
 
 function getDeprecatedBadge() {
-  return screen.queryByRole('badge', { name: /Deprecated/i });
-}
-
-function getSecurityBadge(re: RegExp) {
-  return screen.queryByRole('badge', { name: re });
+  return screen.queryByTestId('badge-deprecated');
 }

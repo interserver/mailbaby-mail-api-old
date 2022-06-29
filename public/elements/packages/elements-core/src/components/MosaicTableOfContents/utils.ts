@@ -12,21 +12,28 @@ export function getHtmlIdFromItemId(id: string) {
   return `sl-toc-${id}`;
 }
 
-const MAX_DEPTH_OPEN_BY_DEFAULT = 0; // Maximum group depth open by default
 export function isGroupOpenByDefault(
   depth: number,
   item: TableOfContentsGroup | TableOfContentsNodeGroup,
   activeId?: string,
+  maxDepthOpenByDefault: number = 0,
 ) {
   return (
-    depth < MAX_DEPTH_OPEN_BY_DEFAULT ||
-    (activeId && (('id' in item && activeId === item.id) || hasActiveItem(item.items, activeId)))
+    depth < maxDepthOpenByDefault ||
+    (activeId &&
+      (('slug' in item && activeId === item.slug) ||
+        ('id' in item && activeId === item.id) ||
+        hasActiveItem(item.items, activeId)))
   );
 }
 
 // Recursively checks for the active item
 function hasActiveItem(items: TableOfContentsGroupItem[], activeId: string): boolean {
   return items.some(item => {
+    if ('slug' in item && activeId === item.slug) {
+      return true;
+    }
+
     if ('id' in item && activeId === item.id) {
       return true;
     }
@@ -42,15 +49,12 @@ function hasActiveItem(items: TableOfContentsGroupItem[], activeId: string): boo
 // Recursively finds the first node
 export function findFirstNode(items: TableOfContentsItem[]): TableOfContentsNode | TableOfContentsNodeGroup | void {
   for (const item of items) {
-    if (isNode(item)) {
+    // ignore nodes with empty slug
+    if ((isNode(item) || isNodeGroup(item)) && item.slug) {
       return item;
     }
 
-    if (isNodeGroup(item)) {
-      return item;
-    }
-
-    if (isGroup(item)) {
+    if (isGroup(item) || isNodeGroup(item)) {
       const firstNode = findFirstNode(item.items);
       if (firstNode) {
         return firstNode;
@@ -70,25 +74,10 @@ export function isGroup(item: TableOfContentsItem): item is TableOfContentsGroup
   return Object.keys(item).length === 2 && 'title' in item && 'items' in item;
 }
 export function isNodeGroup(item: TableOfContentsItem): item is TableOfContentsNodeGroup {
-  return (
-    Object.keys(item).length === 6 &&
-    'title' in item &&
-    'items' in item &&
-    'slug' in item &&
-    'id' in item &&
-    'meta' in item &&
-    'type' in item
-  );
+  return 'title' in item && 'items' in item && 'slug' in item && 'id' in item && 'meta' in item && 'type' in item;
 }
 export function isNode(item: TableOfContentsItem): item is TableOfContentsNode {
-  return (
-    Object.keys(item).length === 5 &&
-    'title' in item &&
-    'slug' in item &&
-    'id' in item &&
-    'meta' in item &&
-    'type' in item
-  );
+  return 'title' in item && 'slug' in item && 'id' in item && 'meta' in item && 'type' in item;
 }
 export function isExternalLink(item: TableOfContentsItem): item is TableOfContentsExternalLink {
   return Object.keys(item).length === 2 && 'title' in item && 'url' in item;

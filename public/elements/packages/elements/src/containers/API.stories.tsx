@@ -2,7 +2,9 @@ import { parse } from '@stoplight/yaml';
 import { Story } from '@storybook/react';
 import * as React from 'react';
 
+import { simpleApiWithInternalOperations } from '../__fixtures__/api-descriptions/simpleApiWithInternalOperations';
 import { simpleApiWithoutDescription } from '../__fixtures__/api-descriptions/simpleApiWithoutDescription';
+import { todosApiBundled } from '../__fixtures__/api-descriptions/todosApiBundled';
 import { zoomApiYaml } from '../__fixtures__/api-descriptions/zoomApiYaml';
 import { API, APIProps } from './API';
 
@@ -40,9 +42,21 @@ APIWithJSONProvidedDirectly.storyName = 'Direct JSON Input (Zoom)';
 
 export const APIWithoutDescription = Template.bind({});
 APIWithoutDescription.args = {
-  apiDescriptionDocument: simpleApiWithoutDescription,
+  apiDescriptionDocument: JSON.stringify(simpleApiWithoutDescription, null, 2),
 };
 APIWithoutDescription.storyName = 'API Without Description';
+
+export const APIWithInternalOperations = Template.bind({});
+APIWithInternalOperations.args = {
+  apiDescriptionDocument: JSON.stringify(simpleApiWithInternalOperations, null, 2),
+};
+APIWithInternalOperations.storyName = 'API With Internal Operations';
+
+export const OpenApi3Schema = Template.bind({});
+OpenApi3Schema.args = {
+  apiDescriptionDocument: todosApiBundled,
+};
+OpenApi3Schema.storyName = 'Open Api 3.0 Schema';
 
 export const StackedLayout = Template.bind({});
 StackedLayout.args = {

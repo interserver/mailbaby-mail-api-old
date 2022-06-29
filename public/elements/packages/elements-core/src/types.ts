@@ -1,12 +1,13 @@
-import * as SMDAST from '@stoplight/markdown/ast-types/smdast';
-import { Dictionary, IHttpOperation, IHttpService, NodeType } from '@stoplight/types';
-import type { FAIconProp, ITableOfContentsLink } from '@stoplight/ui-kit';
+import type { IMarkdownViewerProps } from '@stoplight/markdown-viewer';
+import { IHttpOperation, IHttpService, NodeType } from '@stoplight/types';
 import { JSONSchema4, JSONSchema6, JSONSchema7 } from 'json-schema';
+
+export type JSONSchema = JSONSchema4 | JSONSchema6 | JSONSchema7;
 
 export type ParsedNode =
   | {
       type: NodeType.Article;
-      data: string | SMDAST.IRoot;
+      data: IMarkdownViewerProps['markdown'];
     }
   | {
       type: NodeType.HttpOperation;
@@ -18,7 +19,7 @@ export type ParsedNode =
     }
   | {
       type: NodeType.Model;
-      data: JSONSchema;
+      data: JSONSchema7;
     }
   | {
       type: NodeType.HttpServer;
@@ -36,8 +37,6 @@ export type ParsedNode =
       type: NodeType.Generic;
       data: unknown;
     };
-
-export type JSONSchema = JSONSchema4 | JSONSchema6 | JSONSchema7;
 
 export interface INodeFilter {
   nodeUri?: string;
@@ -93,45 +92,11 @@ export type BundledBranchNode = {
   externalSlug: string;
 };
 
-export interface TableOfContentsLinkWithId extends ITableOfContentsLink {
-  id: number | string;
-}
-
-export interface INodeGraph {
-  nodes: IGraphNode[];
-  edges: IGraphEdge[];
-}
-
-export interface IGraphNode {
-  groupNodeId: number;
-  name: string;
-  srn: string;
-  uri: string;
-  depth: number;
-  type: NodeType | string;
-  version: string;
-
-  projectName: string;
-  groupSlug: string;
-}
-
-export interface IGraphEdge {
-  fromGroupNodeId: number;
-  fromPath: string;
-  toGroupNodeId: number;
-  toPath: string;
-}
-
-export type IconMapType = NodeType | 'group' | 'divider' | 'item';
-export type NodeIconMapping = { [type in IconMapType]?: FAIconProp };
-
 export interface ITableOfContentsTree {
   items: TableOfContentItem[];
 }
 
 export type TableOfContentItem = Divider | Group | Item;
-
-export type TocItemType = 'divider' | 'group' | 'item';
 
 export type Divider = {
   title: string;
@@ -151,12 +116,22 @@ export type Item = {
   uri: string;
 };
 
+export type RouterType = 'history' | 'memory' | 'hash' | 'static';
+
 export interface RoutingProps {
   /**
    * Only applies when using `history`-based routing. (See the `router` prop.) Specifies the base path under which
    * all API component controlled pages are located. The host must route any location under this path to the API component.
    */
   basePath?: string;
+
+  /**
+   * Only applies when using `static`-based routing. (See the `router` prop.) Specifies the current static path
+   * that is being rendered by the StaticRouter, which allows us to properly render the currently active route
+   * on the server and already render the content instead of sending an empty page to the client.
+   */
+  staticRouterPath?: string;
+
   /**
    * Which routing solution to use when the user navigates using the table of contents.
    * Only applies when using the *sidebar* layout.
@@ -167,15 +142,14 @@ export interface RoutingProps {
    *   This still allows the user to link to individual pages without requiring the more complex routing setup `history` needs.
    * - **`memory`** - Internal navigation does not change the host `location` at all.
    *   This works in every scenario, but it lacks the important feature of being able to link to individual pages.
+   * - **`static`** - Renders a single static page for the provided `staticRouterPath`.
+   *   This can be used when the page is being rendered on the server (either SSR or SSG) to pre-generate the
+   *   markup of the page, which can be rehydrated on the client. This can reduce the amount of time spent rendering
+   *   the page on the client.
    *
    *   @default "history"
    */
-  router?: 'history' | 'hash' | 'memory';
-}
-
-export interface ILinkComponentProps {
-  data?: Dictionary<unknown>;
-  url: string;
+  router?: RouterType;
 }
 
 export type ParamField = {
@@ -183,26 +157,3 @@ export type ParamField = {
   description: string;
   example: string;
 };
-
-export interface IActiveInfo {
-  host: string;
-  workspace: string;
-  project: string;
-  branch?: string;
-  node?: string;
-  authToken?: string;
-  showMocking?: boolean;
-}
-
-export interface IArticleHeading {
-  id: string;
-  title: string;
-  depth: number;
-}
-
-export interface IArticleHeadings {
-  headings: IArticleHeading[];
-  title?: string;
-  className?: string;
-  minimal?: boolean;
-}

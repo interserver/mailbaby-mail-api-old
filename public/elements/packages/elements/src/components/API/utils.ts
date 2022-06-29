@@ -1,7 +1,8 @@
-import { TableOfContentsItem } from '@stoplight/elements-core/components/MosaicTableOfContents/types';
+import { isHttpOperation, isHttpService, TableOfContentsItem } from '@stoplight/elements-core';
 import { NodeType } from '@stoplight/types';
+import { defaults } from 'lodash';
 
-import { OperationNode, ServiceNode } from '../../utils/oas/types';
+import { OperationNode, ServiceChildNode, ServiceNode } from '../../utils/oas/types';
 
 export type TagGroup = { title: string; items: OperationNode[] };
 
@@ -20,7 +21,8 @@ export const computeTagGroups = (serviceNode: ServiceNode) => {
       if (groupsByTagId[tagId]) {
         groupsByTagId[tagId].items.push(node);
       } else {
-        const serviceTagName = lowerCaseServiceTags.find(tn => tn === tagId);
+        const serviceTagIndex = lowerCaseServiceTags.findIndex(tn => tn === tagId);
+        const serviceTagName = serviceNode.tags[serviceTagIndex];
         groupsByTagId[tagId] = {
           title: serviceTagName || tagName,
           items: [node],
@@ -51,19 +53,27 @@ export const computeTagGroups = (serviceNode: ServiceNode) => {
   return { groups: orderedTagGroups, ungrouped };
 };
 
-export const computeAPITree = (serviceNode: ServiceNode) => {
+interface ComputeAPITreeConfig {
+  hideSchemas?: boolean;
+  hideInternal?: boolean;
+}
+
+const defaultComputerAPITreeConfig = {
+  hideSchemas: false,
+  hideInternal: false,
+};
+
+export const computeAPITree = (serviceNode: ServiceNode, config: ComputeAPITreeConfig = {}) => {
+  const mergedConfig = defaults(config, defaultComputerAPITreeConfig);
   const tree: TableOfContentsItem[] = [];
 
-  // Only show overview if service node has a description
-  if (serviceNode.data.description) {
-    tree.push({
-      id: '/',
-      slug: '/',
-      title: 'Overview',
-      type: 'overview',
-      meta: '',
-    });
-  }
+  tree.push({
+    id: '/',
+    slug: '/',
+    title: 'Overview',
+    type: 'overview',
+    meta: '',
+  });
 
   const operationNodes = serviceNode.children.filter(node => node.type === NodeType.HttpOperation);
   if (operationNodes.length) {
@@ -75,6 +85,9 @@ export const computeAPITree = (serviceNode: ServiceNode) => {
 
     // Show ungroupped operations above tag groups
     ungrouped.forEach(operationNode => {
+      if (mergedConfig.hideInternal && operationNode.data.internal) {
+        return;
+      }
       tree.push({
         id: operationNode.uri,
         slug: operationNode.uri,
@@ -85,23 +98,33 @@ export const computeAPITree = (serviceNode: ServiceNode) => {
     });
 
     groups.forEach(group => {
-      tree.push({
-        title: group.title,
-        items: group.items.map(operationNode => {
-          return {
-            id: operationNode.uri,
-            slug: operationNode.uri,
-            title: operationNode.name,
-            type: operationNode.type,
-            meta: operationNode.data.method,
-          };
-        }),
+      const items = group.items.flatMap(operationNode => {
+        if (mergedConfig.hideInternal && operationNode.data.internal) {
+          return [];
+        }
+        return {
+          id: operationNode.uri,
+          slug: operationNode.uri,
+          title: operationNode.name,
+          type: operationNode.type,
+          meta: operationNode.data.method,
+        };
       });
+      if (items.length > 0) {
+        tree.push({
+          title: group.title,
+          items,
+        });
+      }
     });
   }
 
-  const schemaNodes = serviceNode.children.filter(node => node.type === NodeType.Model);
-  if (schemaNodes.length) {
+  let schemaNodes = serviceNode.children.filter(node => node.type === NodeType.Model);
+  if (mergedConfig.hideInternal) {
+    schemaNodes = schemaNodes.filter(node => !node.data['x-internal']);
+  }
+
+  if (!mergedConfig.hideSchemas && schemaNodes.length) {
     tree.push({
       title: 'Schemas',
     });
@@ -116,7 +139,6 @@ export const computeAPITree = (serviceNode: ServiceNode) => {
       });
     });
   }
-
   return tree;
 };
 
@@ -135,4 +157,18 @@ export const findFirstNodeSlug = (tree: TableOfContentsItem[]): string | void =>
   }
 
   return;
+};
+
+export const isInternal = (node: ServiceChildNode | ServiceNode): boolean => {
+  const data = node.data;
+
+  if (isHttpOperation(data)) {
+    return !!data.internal;
+  }
+
+  if (isHttpService(data)) {
+    return false;
+  }
+
+  return !!data['x-internal'];
 };

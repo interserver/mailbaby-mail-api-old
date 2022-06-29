@@ -1,37 +1,75 @@
-import { ParsedDocs } from '@stoplight/elements-core/components/Docs';
-import { SidebarLayout } from '@stoplight/elements-core/components/Layout/SidebarLayout';
-import { Logo } from '@stoplight/elements-core/components/Logo';
-import { TableOfContents } from '@stoplight/elements-core/components/MosaicTableOfContents';
-import { PoweredByLink } from '@stoplight/elements-core/components/PoweredByLink';
-import { Box, Flex, Heading } from '@stoplight/mosaic';
+import {
+  ExportButtonProps,
+  Logo,
+  ParsedDocs,
+  PoweredByLink,
+  SidebarLayout,
+  TableOfContents,
+} from '@stoplight/elements-core';
+import { Flex, Heading } from '@stoplight/mosaic';
+import { NodeType } from '@stoplight/types';
 import * as React from 'react';
 import { Link, Redirect, useLocation } from 'react-router-dom';
 
 import { ServiceNode } from '../../utils/oas/types';
-import { computeAPITree, findFirstNodeSlug } from './utils';
+import { computeAPITree, findFirstNodeSlug, isInternal } from './utils';
 
 type SidebarLayoutProps = {
   serviceNode: ServiceNode;
   logo?: string;
   hideTryIt?: boolean;
+  hideSchemas?: boolean;
+  hideInternal?: boolean;
+  hideExport?: boolean;
+  exportProps?: ExportButtonProps;
+  tryItCredentialsPolicy?: 'omit' | 'include' | 'same-origin';
+  tryItCorsProxy?: string;
 };
 
-export const APIWithSidebarLayout: React.FC<SidebarLayoutProps> = ({ serviceNode, logo, hideTryIt }) => {
-  const tree = React.useMemo(() => computeAPITree(serviceNode), [serviceNode]);
+export const APIWithSidebarLayout: React.FC<SidebarLayoutProps> = ({
+  serviceNode,
+  logo,
+  hideTryIt,
+  hideSchemas,
+  hideInternal,
+  hideExport,
+  exportProps,
+  tryItCredentialsPolicy,
+  tryItCorsProxy,
+}) => {
+  const container = React.useRef<HTMLDivElement>(null);
+  const tree = React.useMemo(
+    () => computeAPITree(serviceNode, { hideSchemas, hideInternal }),
+    [serviceNode, hideSchemas, hideInternal],
+  );
   const location = useLocation();
   const { pathname } = location;
-
-  const hasOverview = !!serviceNode.data.description;
   const isRootPath = !pathname || pathname === '/';
   const node = isRootPath ? serviceNode : serviceNode.children.find(child => child.uri === pathname);
-  if ((isRootPath && !hasOverview) || !node) {
-    // Redirect to the first child if service node has no description or node doesn't exist
+
+  const layoutOptions = React.useMemo(
+    () => ({ hideTryIt: hideTryIt, hideExport: hideExport || node?.type !== NodeType.HttpService }),
+    [hideTryIt, hideExport, node],
+  );
+
+  if (!node) {
+    // Redirect to the first child if node doesn't exist
     const firstSlug = findFirstNodeSlug(tree);
 
     if (firstSlug) {
       return <Redirect to={firstSlug} />;
     }
   }
+
+  if (hideInternal && node && isInternal(node)) {
+    return <Redirect to="/" />;
+  }
+
+  const handleTocClick = () => {
+    if (container.current) {
+      container.current.scrollIntoView();
+    }
+  };
 
   const sidebar = (
     <>
@@ -44,22 +82,25 @@ export const APIWithSidebarLayout: React.FC<SidebarLayoutProps> = ({ serviceNode
         <Heading size={4}>{serviceNode.name}</Heading>
       </Flex>
       <Flex flexGrow flexShrink overflowY="auto" direction="col">
-        <TableOfContents tree={tree} activeId={pathname} Link={Link} />
+        <TableOfContents tree={tree} activeId={pathname} Link={Link} onLinkClick={handleTocClick} />
       </Flex>
       <PoweredByLink source={serviceNode.name} pathname={pathname} packageType="elements" />
     </>
   );
 
   return (
-    <SidebarLayout sidebar={sidebar}>
+    <SidebarLayout ref={container} sidebar={sidebar}>
       {node && (
-        <Box
-          as={ParsedDocs}
+        <ParsedDocs
           key={pathname}
-          uri={hasOverview ? pathname : undefined}
+          uri={pathname}
           node={node}
-          hideTryIt={hideTryIt}
+          nodeTitle={node.name}
+          layoutOptions={layoutOptions}
           location={location}
+          exportProps={exportProps}
+          tryItCredentialsPolicy={tryItCredentialsPolicy}
+          tryItCorsProxy={tryItCorsProxy}
         />
       )}
     </SidebarLayout>

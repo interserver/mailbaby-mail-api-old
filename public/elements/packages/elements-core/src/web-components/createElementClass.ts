@@ -21,7 +21,11 @@ type PropDescriptor<T> = {
 } & (T extends undefined ? { defaultValue?: undefined } : { defaultValue: T });
 
 type PropDescriptorMap<P> = {
-  [K in keyof P]: PropDescriptor<P[K]>;
+  [K in keyof Complete<P>]: PropDescriptor<P[K]>;
+};
+
+type Complete<T> = {
+  [P in keyof Required<T>]: Pick<T, P> extends Required<Pick<T, P>> ? T[P] : T[P] | undefined;
 };
 
 export const createElementClass = <P>(
@@ -71,6 +75,7 @@ export const createElementClass = <P>(
 
     connectedCallback() {
       this._mountPoint = document.createElement('div');
+      this._mountPoint.style.height = '100%';
       this.appendChild(this._mountPoint);
 
       for (const key in propDescriptors) {

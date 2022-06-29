@@ -1,9 +1,8 @@
-import { processMarkdown } from '@stoplight/markdown-viewer';
 import { NodeType } from '@stoplight/types';
 import { parse as parseYaml } from '@stoplight/yaml';
 import * as React from 'react';
 
-import { JSONSchema, ParsedNode } from '../types';
+import { ParsedNode } from '../types';
 import { isHttpOperation, isHttpService, isJSONSchema, isSMDASTRoot } from '../utils/guards';
 
 export function useParsedData(nodeType: NodeType, data: unknown): ParsedNode | undefined {
@@ -21,22 +20,18 @@ const parserMap: Record<NodeType, Parser> = {
   [NodeType.Generic]: parseUnknown,
   [NodeType.TableOfContents]: parseUnknown,
   [NodeType.SpectralRuleset]: parseUnknown,
+  [NodeType.Styleguide]: parseUnknown,
   [NodeType.Unknown]: parseUnknown,
 };
 
 function parseArticleData(rawData: unknown): ParsedNode | undefined {
-  if (typeof rawData === 'string') {
-    return {
-      type: NodeType.Article,
-      data: processMarkdown(rawData),
-    };
-  }
-  if (isSMDASTRoot(rawData)) {
+  if (typeof rawData === 'string' || isSMDASTRoot(rawData)) {
     return {
       type: NodeType.Article,
       data: rawData,
     };
   }
+
   return undefined;
 }
 
@@ -67,7 +62,7 @@ function parseModel(rawData: unknown): ParsedNode | undefined {
   if (isJSONSchema(data)) {
     return {
       type: NodeType.Model,
-      data: data as JSONSchema,
+      data: data,
     };
   }
   return undefined;

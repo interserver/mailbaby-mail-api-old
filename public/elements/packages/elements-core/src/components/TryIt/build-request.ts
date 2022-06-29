@@ -1,18 +1,18 @@
 import { Dictionary, IHttpOperation, IMediaTypeContent } from '@stoplight/types';
 import { Request as HarRequest } from 'har-format';
-import URI from 'urijs';
 
-import { getServerUrlWithDefaultValues } from '../../utils/http-spec/IServer';
+import { getServerUrlWithDefaultValues, IServer } from '../../utils/http-spec/IServer';
 import {
   filterOutAuthorizationParams,
   HttpSecuritySchemeWithValues,
   isApiKeySecurityScheme,
   isBasicSecurityScheme,
   isBearerSecurityScheme,
+  isDigestSecurityScheme,
   isOAuth2SecurityScheme,
-} from './authentication-utils';
-import { MockData } from './mocking-utils';
-import { BodyParameterValues, createRequestBody } from './request-body-utils';
+} from './Auth/authentication-utils';
+import { BodyParameterValues, createRequestBody } from './Body/request-body-utils';
+import { MockData } from './Mocking/mocking-utils';
 
 type NameAndValue = {
   name: string;
@@ -28,7 +28,27 @@ interface BuildRequestInput {
   bodyInput?: BodyParameterValues | string;
   mockData?: MockData;
   auth?: HttpSecuritySchemeWithValues;
+  chosenServer?: IServer | null;
+  credentials?: 'omit' | 'include' | 'same-origin';
+  corsProxy?: string;
 }
+
+const getServerUrl = ({
+  chosenServer,
+  httpOperation,
+  mockData,
+  corsProxy,
+}: Pick<BuildRequestInput, 'httpOperation' | 'chosenServer' | 'mockData' | 'corsProxy'>) => {
+  const server = chosenServer || httpOperation.servers?.[0];
+  const chosenServerUrl = server && getServerUrlWithDefaultValues(server);
+  const serverUrl = mockData?.url || chosenServerUrl || window.location.origin;
+
+  if (corsProxy && !mockData) {
+    return `${corsProxy}${serverUrl}`;
+  }
+
+  return serverUrl;
+};
 
 export async function buildFetchRequest({
   httpOperation,
@@ -37,10 +57,12 @@ export async function buildFetchRequest({
   parameterValues,
   mockData,
   auth,
+  chosenServer,
+  credentials = 'omit',
+  corsProxy,
 }: BuildRequestInput): Promise<Parameters<typeof fetch>> {
-  const firstServer = httpOperation.servers?.[0];
-  const firstServerUrl = firstServer && getServerUrlWithDefaultValues(firstServer);
-  const serverUrl = mockData?.url || firstServerUrl || window.location.origin;
+  const serverUrl = getServerUrl({ httpOperation, mockData, chosenServer, corsProxy });
+
   const shouldIncludeBody = ['PUT', 'POST', 'PATCH'].includes(httpOperation.method.toUpperCase());
 
   const queryParams =
@@ -48,29 +70,34 @@ export async function buildFetchRequest({
       ?.map(param => ({ name: param.name, value: parameterValues[param.name] ?? '' }))
       .filter(({ value }) => value.length > 0) ?? [];
 
-  const rawHeaders = filterOutAuthorizationParams(httpOperation.request?.headers ?? [], httpOperation.security).map(
-    header => ({ name: header.name, value: parameterValues[header.name] ?? '' }),
-  );
+  const rawHeaders = filterOutAuthorizationParams(httpOperation.request?.headers ?? [], httpOperation.security)
+    .map(header => ({ name: header.name, value: parameterValues[header.name] ?? '' }))
+    .filter(({ value }) => value.length > 0);
 
   const [queryParamsWithAuth, headersWithAuth] = runAuthRequestEhancements(auth, queryParams, rawHeaders);
 
   const expandedPath = uriExpand(httpOperation.path, parameterValues);
-  const url = new URL(URI(serverUrl).segment(expandedPath).toString());
-  url.search = new URLSearchParams(queryParamsWithAuth.map(nameAndValueObjectToPair)).toString();
+
+  // urlObject is concatenated this way to avoid /user and /user/ endpoint edge cases
+  const urlObject = new URL(serverUrl + expandedPath);
+  urlObject.search = new URLSearchParams(queryParamsWithAuth.map(nameAndValueObjectToPair)).toString();
 
   const body = typeof bodyInput === 'object' ? await createRequestBody(mediaTypeContent, bodyInput) : bodyInput;
 
   const headers = {
-    'Content-Type': mediaTypeContent?.mediaType ?? 'application/json',
+    // do not include multipart/form-data - browser handles its content type and boundary
+    ...(mediaTypeContent?.mediaType !== 'multipart/form-data' && {
+      'Content-Type': mediaTypeContent?.mediaType ?? 'application/json',
+    }),
     ...Object.fromEntries(headersWithAuth.map(nameAndValueObjectToPair)),
     ...mockData?.header,
   };
 
   return [
-    url.toString(),
+    urlObject.href,
     {
-      credentials: 'omit',
-      method: httpOperation.method,
+      credentials,
+      method: httpOperation.method.toUpperCase(),
       headers,
       body: shouldIncludeBody ? body : undefined,
     },
@@ -117,6 +144,13 @@ const runAuthRequestEhancements = (
     });
   }
 
+  if (isDigestSecurityScheme(auth.scheme)) {
+    newHeaders.push({
+      name: 'Authorization',
+      value: auth.authValue?.replace(/\s\s+/g, ' ').trim() ?? '',
+    });
+  }
+
   if (isBasicSecurityScheme(auth.scheme)) {
     newHeaders.push({
       name: 'Authorization',
@@ -133,10 +167,12 @@ export async function buildHarRequest({
   parameterValues,
   mediaTypeContent,
   auth,
+  mockData,
+  chosenServer,
+  corsProxy,
 }: BuildRequestInput): Promise<HarRequest> {
-  const firstServer = httpOperation.servers?.[0];
-  const firstServerUrl = firstServer && getServerUrlWithDefaultValues(firstServer);
-  const serverUrl = firstServerUrl || window.location.origin;
+  const serverUrl = getServerUrl({ httpOperation, mockData, chosenServer, corsProxy });
+
   const mimeType = mediaTypeContent?.mediaType ?? 'application/json';
   const shouldIncludeBody = ['PUT', 'POST', 'PATCH'].includes(httpOperation.method.toUpperCase());
 
@@ -149,7 +185,13 @@ export async function buildHarRequest({
     httpOperation.request?.headers?.map(header => ({ name: header.name, value: parameterValues[header.name] ?? '' })) ??
     [];
 
+  if (mockData?.header) {
+    headerParams.push({ name: 'Prefer', value: mockData.header.Prefer });
+  }
+
   const [queryParamsWithAuth, headerParamsWithAuth] = runAuthRequestEhancements(auth, queryParams, headerParams);
+  const expandedPath = uriExpand(httpOperation.path, parameterValues);
+  const urlObject = new URL(serverUrl + expandedPath);
 
   let postData: HarRequest['postData'] = undefined;
   if (shouldIncludeBody && typeof bodyInput === 'string') {
@@ -176,7 +218,7 @@ export async function buildHarRequest({
 
   return {
     method: httpOperation.method.toUpperCase(),
-    url: URI(uriExpand(httpOperation.path, parameterValues)).absoluteTo(serverUrl).toString(),
+    url: urlObject.href,
     httpVersion: 'HTTP/1.1',
     cookies: [],
     headers: [{ name: 'Content-Type', value: mimeType }, ...headerParamsWithAuth],

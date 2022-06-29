@@ -7,12 +7,14 @@ export const httpServiceWithoutOrigin: IHttpService = {
   version: '1.0.0',
   servers: [
     {
+      id: '?http-server-0?',
       url: 'api',
-      name: 'Production API',
+      description: 'Production API',
     },
     {
+      id: '?http-server-1?',
       url: 'https://api.staging.stoplight.io',
-      name: 'Staging API',
+      description: 'Staging API',
     },
   ],
 };
